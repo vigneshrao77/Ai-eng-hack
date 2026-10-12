@@ -65,7 +65,11 @@ export default function ProjectLayout({ children }: { children: React.ReactNode 
       </div>
 
       {/* Modern Horizontal Navigation Tabs - Black & White */}
-      <div className="flex overflow-x-auto gap-1 border-b border-zinc-800 pb-2 scrollbar-none">
+      <nav
+        className="flex overflow-x-auto gap-1 border-b border-zinc-800 pb-2 scrollbar-none"
+        role="tablist"
+        aria-label="Project Modules"
+      >
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href;
@@ -73,18 +77,20 @@ export default function ProjectLayout({ children }: { children: React.ReactNode 
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded text-xs font-medium whitespace-nowrap transition-colors ${
+              role="tab"
+              aria-selected={isActive}
+              className={`flex items-center gap-2 px-3.5 py-2 min-h-[40px] rounded text-xs font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-white ${
                 isActive
-                  ? "bg-white text-black font-semibold"
+                  ? "bg-white text-black font-semibold shadow-sm"
                   : "text-zinc-400 hover:text-white hover:bg-zinc-900"
               }`}
             >
-              <Icon className="w-4 h-4" />
+              <Icon className="w-4 h-4" aria-hidden="true" />
               <span>{item.name}</span>
             </Link>
           );
         })}
-      </div>
+      </nav>
 
       {/* Main Tab Content */}
       <div>{children}</div>

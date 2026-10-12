@@ -260,16 +260,25 @@ export default function GxpHeatmapPage() {
 
       {/* QA Override Modal */}
       {overrideModalOpen && targetNode && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
-          <div className="bg-black border border-zinc-800 rounded-xl max-w-md w-full p-5 space-y-4 shadow-2xl">
+        <div
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="gxp-override-title"
+        >
+          <div className="bg-black border border-zinc-700 rounded-xl max-w-md w-full p-6 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
               <div className="flex items-center gap-2">
-                <FileSignature className="w-4 h-4 text-white" />
-                <h3 className="font-bold text-white text-sm">Regulatory QA Tier Override</h3>
+                <FileSignature className="w-4 h-4 text-white" aria-hidden="true" />
+                <h3 id="gxp-override-title" className="font-bold text-white text-base">
+                  Regulatory QA Tier Override
+                </h3>
               </div>
               <button
+                type="button"
                 onClick={() => setOverrideModalOpen(false)}
-                className="text-zinc-400 hover:text-white"
+                className="text-zinc-400 hover:text-white p-1 rounded focus-visible:ring-2 focus-visible:ring-white"
+                aria-label="Close dialog"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -278,22 +287,27 @@ export default function GxpHeatmapPage() {
             <div className="space-y-3 text-xs">
               <div>
                 <span className="text-zinc-400">Target Component:</span>
-                <div className="font-mono text-white text-xs mt-1 p-2 bg-zinc-950 rounded border border-zinc-800">
+                <div className="font-mono text-white text-xs mt-1 p-2 bg-zinc-950 rounded border border-zinc-800 break-all">
                   {targetNode.node_id}
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <span className="text-zinc-400">Current Detected Tier:</span>
-                  <div className="font-bold text-white mt-1 font-mono">{targetNode.tier}</div>
+                  <span className="text-zinc-400 block mb-1">Current Detected Tier:</span>
+                  <div className="font-bold text-white mt-1 font-mono p-1.5 bg-zinc-950 rounded border border-zinc-800">
+                    {targetNode.tier}
+                  </div>
                 </div>
                 <div>
-                  <label className="text-zinc-400 block mb-1">New QA Tier:</label>
+                  <label htmlFor="new-qa-tier-select" className="text-zinc-400 block mb-1">
+                    New QA Tier:
+                  </label>
                   <select
+                    id="new-qa-tier-select"
                     value={newTier}
                     onChange={(e) => setNewTier(e.target.value)}
-                    className="w-full bg-zinc-950 border border-zinc-800 text-white p-1.5 rounded font-medium focus:outline-none focus:border-white font-mono"
+                    className="w-full bg-zinc-950 border border-zinc-800 text-white p-2 rounded font-medium focus:outline-none focus:border-white focus-visible:ring-2 focus-visible:ring-white font-mono"
                   >
                     <option value="HIGH">HIGH (Part 11 Core)</option>
                     <option value="MEDIUM">MEDIUM (CSA Exploratory)</option>
@@ -303,15 +317,16 @@ export default function GxpHeatmapPage() {
               </div>
 
               <div>
-                <label className="text-zinc-400 block mb-1">
+                <label htmlFor="override-reason-textarea" className="text-zinc-400 block mb-1">
                   Mandatory QA Regulatory Justification:
                 </label>
                 <textarea
+                  id="override-reason-textarea"
                   rows={3}
                   value={overrideReason}
                   onChange={(e) => setOverrideReason(e.target.value)}
                   placeholder="State the formal CSV/CSA rationale for re-tiering (e.g., component is isolated by read-only API facade with zero batch release impact)..."
-                  className="w-full bg-zinc-950 border border-zinc-800 text-white p-2 rounded text-xs focus:outline-none focus:border-white placeholder:text-zinc-600"
+                  className="w-full bg-zinc-950 border border-zinc-800 text-white p-2.5 rounded text-xs focus:outline-none focus:border-white focus-visible:ring-2 focus-visible:ring-white placeholder:text-zinc-600"
                 />
               </div>
 
@@ -323,15 +338,17 @@ export default function GxpHeatmapPage() {
 
             <div className="flex justify-end gap-2 pt-2 border-t border-zinc-800">
               <button
+                type="button"
                 onClick={() => setOverrideModalOpen(false)}
-                className="px-3 py-1.5 rounded bg-black hover:bg-zinc-900 border border-zinc-800 text-zinc-300 text-xs"
+                className="px-3.5 py-2 min-h-[38px] rounded bg-black hover:bg-zinc-900 border border-zinc-800 text-zinc-300 text-xs focus-visible:ring-2 focus-visible:ring-white"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={handleApplyOverride}
                 disabled={savingOverride || !overrideReason.trim()}
-                className="px-4 py-1.5 rounded bg-white hover:bg-zinc-200 text-black font-bold text-xs disabled:opacity-50"
+                className="px-4 py-2 min-h-[38px] rounded bg-white hover:bg-zinc-200 text-black font-bold text-xs disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-white"
               >
                 {savingOverride ? "Recording..." : "Authorize & Sign Override"}
               </button>

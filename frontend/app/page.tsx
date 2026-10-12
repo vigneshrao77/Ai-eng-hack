@@ -228,25 +228,40 @@ export default function HomePage() {
 
       {/* Assessment Modal */}
       {assessmentModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="bg-zinc-950 max-w-lg w-full p-6 space-y-4 border border-zinc-700 rounded-lg">
-            <h3 className="text-lg font-bold text-white">Create Repository Assessment</h3>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="assessment-modal-title"
+        >
+          <div className="bg-zinc-950 max-w-lg w-full p-6 space-y-4 border border-zinc-700 rounded-lg shadow-2xl">
+            <h3 id="assessment-modal-title" className="text-lg font-bold text-white">
+              Create Repository Assessment
+            </h3>
             <p className="text-xs text-zinc-400">
               Upload a source archive (ZIP) or provide repository metadata. ModernRx will ingest the
               source code, SQL models, configs, and traces to generate the Living Twin.
             </p>
             <div className="space-y-3">
               <div>
-                <label className="text-xs font-mono text-zinc-400">Application Name</label>
+                <label htmlFor="app-name-input" className="text-xs font-mono text-zinc-400 block">
+                  Application Name
+                </label>
                 <input
+                  id="app-name-input"
                   type="text"
                   defaultValue="EnterpriseLIMS-v2"
-                  className="mt-1 w-full px-3 py-2 rounded bg-black border border-zinc-800 text-sm text-white focus:outline-none focus:border-white font-mono"
+                  className="mt-1 w-full px-3 py-2 rounded bg-black border border-zinc-800 text-sm text-white focus:outline-none focus:border-white focus-visible:ring-2 focus-visible:ring-white font-mono"
                 />
               </div>
               <div>
-                <label className="text-xs font-mono text-zinc-400">Target Cloud</label>
-                <select className="mt-1 w-full px-3 py-2 rounded bg-black border border-zinc-800 text-sm text-white focus:outline-none focus:border-white font-mono">
+                <label htmlFor="target-cloud-select" className="text-xs font-mono text-zinc-400 block">
+                  Target Cloud
+                </label>
+                <select
+                  id="target-cloud-select"
+                  className="mt-1 w-full px-3 py-2 rounded bg-black border border-zinc-800 text-sm text-white focus:outline-none focus:border-white focus-visible:ring-2 focus-visible:ring-white font-mono"
+                >
                   <option>AWS (Amazon Web Services)</option>
                   <option>Azure (Microsoft Azure)</option>
                   <option>GCP (Google Cloud Platform)</option>
@@ -256,7 +271,7 @@ export default function HomePage() {
                 <p className="text-xs text-zinc-400">Select or drop AcmeLIMS repository ZIP</p>
                 <button
                   type="button"
-                  className="mt-2 px-3 py-1.5 rounded bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-xs text-zinc-200"
+                  className="mt-2 px-3 py-1.5 rounded bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-xs text-zinc-200 focus-visible:ring-2 focus-visible:ring-white"
                 >
                   Use Built-in AcmeLIMS Monolith
                 </button>
@@ -264,14 +279,15 @@ export default function HomePage() {
             </div>
             <div className="flex justify-end gap-2 pt-2">
               <button
+                type="button"
                 onClick={() => setAssessmentModalOpen(false)}
-                className="px-4 py-2 rounded bg-zinc-900 border border-zinc-800 text-xs text-zinc-300 hover:bg-zinc-800"
+                className="px-4 py-2 min-h-[38px] rounded bg-zinc-900 border border-zinc-800 text-xs text-zinc-300 hover:bg-zinc-800 focus-visible:ring-2 focus-visible:ring-white"
               >
                 Cancel
               </button>
               <Link
                 href="/projects/acmelims-demo/overview"
-                className="px-4 py-2 rounded bg-white text-xs text-black font-semibold hover:bg-zinc-200"
+                className="px-4 py-2 min-h-[38px] rounded bg-white text-xs text-black font-semibold hover:bg-zinc-200 focus-visible:ring-2 focus-visible:ring-white flex items-center justify-center"
               >
                 Start Assessment
               </Link>

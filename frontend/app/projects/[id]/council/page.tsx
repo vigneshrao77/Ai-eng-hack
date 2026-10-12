@@ -395,37 +395,47 @@ export default function CouncilPage() {
 
       {/* Approve / Reject Dialog Modal */}
       {actionModalOpen && targetDecision && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
+        <div
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="council-action-title"
+        >
           <div className="bg-black border border-zinc-800 rounded-xl max-w-md w-full p-5 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
-              <h3 className="font-bold text-white text-sm">
+              <h3 id="council-action-title" className="font-bold text-white text-sm">
                 {modalAction === "APPROVE" ? "Authorize Council Decision" : "Reject Council Decision"}
               </h3>
               <button
+                type="button"
                 onClick={() => setActionModalOpen(false)}
-                className="text-zinc-400 hover:text-white"
+                className="text-zinc-400 hover:text-white p-1 rounded focus-visible:ring-2 focus-visible:ring-white"
+                aria-label="Close dialog"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <div className="space-y-3 text-xs">
-              <div>
-                <span className="text-zinc-400">Cluster:</span>
-                <span className="font-bold text-white ml-2 font-mono">{targetDecision.cluster_id}</span>
-              </div>
-              <div>
-                <span className="text-zinc-400">Proposed Strategy:</span>
-                <span className="font-bold text-white ml-2 font-mono">{targetDecision.strategy}</span>
+              <div className="bg-zinc-950 p-2.5 rounded border border-zinc-800 space-y-1 font-mono text-[11px]">
+                <div>
+                  <span className="text-zinc-500">Cluster:</span>
+                  <span className="font-bold text-white ml-2">{targetDecision.cluster_id}</span>
+                </div>
+                <div>
+                  <span className="text-zinc-500">Proposed Strategy:</span>
+                  <span className="font-bold text-white ml-2">{targetDecision.strategy}</span>
+                </div>
               </div>
 
               <div>
-                <label className="text-zinc-400 block mb-1">
+                <label htmlFor="council-action-notes" className="text-zinc-400 block mb-1">
                   {modalAction === "APPROVE"
                     ? "QA Approval Endorsement / Review Notes:"
                     : "Mandatory Rejection Explanation:"}
                 </label>
                 <textarea
+                  id="council-action-notes"
                   rows={3}
                   value={actionComment}
                   onChange={(e) => setActionComment(e.target.value)}
@@ -434,22 +444,24 @@ export default function CouncilPage() {
                       ? "Approved following CSA risk categorization and characterization harness review..."
                       : "State why this strategy fails compliance or architectural standards..."
                   }
-                  className="w-full bg-zinc-950 border border-zinc-800 text-white p-2 rounded text-xs focus:outline-none focus:border-white placeholder:text-zinc-600"
+                  className="w-full bg-zinc-950 border border-zinc-800 text-white p-2.5 rounded text-xs focus:outline-none focus:border-white focus-visible:ring-2 focus-visible:ring-white placeholder:text-zinc-600"
                 />
               </div>
             </div>
 
             <div className="flex justify-end gap-2 pt-2 border-t border-zinc-800">
               <button
+                type="button"
                 onClick={() => setActionModalOpen(false)}
-                className="px-3 py-1.5 rounded bg-black hover:bg-zinc-900 border border-zinc-800 text-zinc-300 text-xs"
+                className="px-3.5 py-2 min-h-[36px] rounded bg-black hover:bg-zinc-900 border border-zinc-800 text-zinc-300 text-xs focus-visible:ring-2 focus-visible:ring-white"
               >
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={handleConfirmAction}
                 disabled={actionLoading}
-                className={`px-4 py-1.5 rounded font-bold text-xs ${
+                className={`px-4 py-2 min-h-[36px] rounded font-bold text-xs focus-visible:ring-2 focus-visible:ring-white ${
                   modalAction === "APPROVE"
                     ? "bg-white hover:bg-zinc-200 text-black"
                     : "bg-zinc-900 hover:bg-zinc-800 text-white border border-zinc-700"

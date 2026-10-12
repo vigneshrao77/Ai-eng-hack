@@ -191,25 +191,32 @@ export default function AuditPage() {
 
       {/* Payload Modal */}
       {selectedPayload && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
+        <div
+          className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="audit-payload-title"
+        >
           <div className="bg-black border border-zinc-800 rounded-xl max-w-lg w-full p-5 space-y-4 shadow-2xl">
             <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
               <div className="flex items-center gap-2">
-                <FileText className="w-4 h-4 text-white" />
-                <h3 className="font-bold text-white text-sm font-mono">
+                <FileText className="w-4 h-4 text-white" aria-hidden="true" />
+                <h3 id="audit-payload-title" className="font-bold text-white text-sm font-mono">
                   Block #{selectedPayload.id} Payload Inspection
                 </h3>
               </div>
               <button
+                type="button"
                 onClick={() => setSelectedPayload(null)}
-                className="text-zinc-400 hover:text-white"
+                className="text-zinc-400 hover:text-white p-1 rounded focus-visible:ring-2 focus-visible:ring-white"
+                aria-label="Close dialog"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             <div className="space-y-3 text-xs">
-              <div className="flex justify-between text-[11px] font-mono text-zinc-400 bg-zinc-950 p-2 rounded border border-zinc-800">
+              <div className="flex justify-between text-[11px] font-mono tabular-nums text-zinc-400 bg-zinc-950 p-2 rounded border border-zinc-800">
                 <span>Action: <b className="text-white">{selectedPayload.action}</b></span>
                 <span>Actor: <b className="text-white">{selectedPayload.actor}</b></span>
               </div>
@@ -226,8 +233,9 @@ export default function AuditPage() {
 
             <div className="flex justify-end pt-2 border-t border-zinc-800">
               <button
+                type="button"
                 onClick={() => setSelectedPayload(null)}
-                className="px-4 py-1.5 rounded bg-white hover:bg-zinc-200 text-black text-xs font-bold font-mono"
+                className="px-4 py-1.5 min-h-[36px] rounded bg-white hover:bg-zinc-200 text-black text-xs font-bold font-mono focus-visible:ring-2 focus-visible:ring-white"
               >
                 Close
               </button>

@@ -128,43 +128,51 @@ export default function RoadmapPage() {
           {/* Squads Slider */}
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <span className="text-xs text-zinc-300 whitespace-nowrap">
-              Dev Squads: <b className="text-white font-mono">{squads}</b>
+              Dev Squads: <b className="text-white font-mono tabular-nums">{squads}</b>
             </span>
             <input
               type="range"
               min="1"
               max="6"
               value={squads}
+              aria-label="Developer Squads"
+              aria-valuemin={1}
+              aria-valuemax={6}
+              aria-valuenow={squads}
               onChange={(e) => {
                 const val = parseInt(e.target.value);
                 setSquads(val);
                 handleSimulateWhatIf(val, targetWeeks);
               }}
-              className="w-28 accent-white cursor-pointer"
+              className="w-28 accent-white cursor-pointer focus-visible:ring-2 focus-visible:ring-white rounded"
             />
           </div>
 
           {/* Target Weeks Slider */}
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <span className="text-xs text-zinc-300 whitespace-nowrap">
-              Target Deadline: <b className="text-white font-mono">{targetWeeks} wks</b>
+              Target Deadline: <b className="text-white font-mono tabular-nums">{targetWeeks} wks</b>
             </span>
             <input
               type="range"
               min="10"
               max="35"
               value={targetWeeks}
+              aria-label="Target Deadline in Weeks"
+              aria-valuemin={10}
+              aria-valuemax={35}
+              aria-valuenow={targetWeeks}
               onChange={(e) => {
                 const val = parseInt(e.target.value);
                 setTargetWeeks(val);
                 handleSimulateWhatIf(squads, val);
               }}
-              className="w-28 accent-white cursor-pointer"
+              className="w-28 accent-white cursor-pointer focus-visible:ring-2 focus-visible:ring-white rounded"
             />
           </div>
 
           {/* Probability Indicator */}
-          <div className="flex items-center gap-2 text-xs bg-zinc-950 px-3 py-1.5 rounded-lg border border-zinc-800 font-mono">
+          <div className="flex items-center gap-2 text-xs bg-zinc-950 px-3 py-1.5 rounded-lg border border-zinc-800 font-mono tabular-nums">
             <span className="text-zinc-500">On-Time Probability:</span>
             <span className="font-bold text-white">
               {mc.prob_meeting_target}%
