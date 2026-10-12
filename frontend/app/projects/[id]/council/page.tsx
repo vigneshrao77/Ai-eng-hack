@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import {
   Users2,
@@ -56,11 +56,7 @@ export default function CouncilPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [actionSuccessMsg, setActionSuccessMsg] = useState("");
 
-  useEffect(() => {
-    loadCouncilData();
-  }, [id]);
-
-  async function loadCouncilData() {
+  const loadCouncilData = useCallback(async () => {
     try {
       const resDec = await fetchCouncilDecisions(id);
       if (resDec && resDec.decisions) {
@@ -71,7 +67,11 @@ export default function CouncilPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [id]);
+
+  useEffect(() => {
+    loadCouncilData();
+  }, [loadCouncilData]);
 
   async function handleRunCouncil() {
     setRunningCouncil(true);

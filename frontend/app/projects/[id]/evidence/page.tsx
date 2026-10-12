@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import {
   FileCheck2,
@@ -25,11 +25,7 @@ export default function EvidencePacksPage() {
   const [generatingWave, setGeneratingWave] = useState<number | null>(null);
   const [selectedWaveToGen, setSelectedWaveToGen] = useState<number>(1);
 
-  useEffect(() => {
-    loadPacks();
-  }, [id]);
-
-  async function loadPacks() {
+  const loadPacks = useCallback(async () => {
     try {
       const data = await fetchEvidencePacks(id);
       if (data && data.evidence_packs) {
@@ -40,7 +36,11 @@ export default function EvidencePacksPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [id]);
+
+  useEffect(() => {
+    loadPacks();
+  }, [loadPacks]);
 
   async function handleGeneratePack(waveNum: number) {
     setGeneratingWave(waveNum);

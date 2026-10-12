@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import {
   ShieldAlert,
@@ -34,11 +34,7 @@ export default function GxpHeatmapPage() {
   const [savingOverride, setSavingOverride] = useState(false);
   const [overrideSuccessMsg, setOverrideSuccessMsg] = useState("");
 
-  useEffect(() => {
-    loadGxp();
-  }, [id]);
-
-  async function loadGxp() {
+  const loadGxp = useCallback(async () => {
     try {
       const data = await fetchGxp(id);
       setGxpData(data);
@@ -47,7 +43,11 @@ export default function GxpHeatmapPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [id]);
+
+  useEffect(() => {
+    loadGxp();
+  }, [loadGxp]);
 
   async function handleApplyOverride() {
     if (!targetNode || !overrideReason.trim()) return;

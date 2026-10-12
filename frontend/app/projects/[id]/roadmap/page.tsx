@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import {
   CalendarDays,
@@ -27,11 +27,7 @@ export default function RoadmapPage() {
   const [targetWeeks, setTargetWeeks] = useState<number>(22);
   const [recalculating, setRecalculating] = useState(false);
 
-  useEffect(() => {
-    loadRoadmap();
-  }, [id]);
-
-  async function loadRoadmap() {
+  const loadRoadmap = useCallback(async () => {
     try {
       const data = await fetchRoadmap(id);
       setRoadmapData(data);
@@ -46,7 +42,11 @@ export default function RoadmapPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [id]);
+
+  useEffect(() => {
+    loadRoadmap();
+  }, [loadRoadmap]);
 
   async function handleSimulateWhatIf(newSquads?: number, newTarget?: number) {
     const s = newSquads ?? squads;

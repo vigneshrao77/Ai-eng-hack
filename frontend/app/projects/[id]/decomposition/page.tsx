@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import {
   Split,
@@ -23,11 +23,7 @@ export default function DecompositionPage() {
   const [activeVariant, setActiveVariant] = useState<"modernrx" | "hdbscan" | "louvain">("modernrx");
   const [recomputing, setRecomputing] = useState(false);
 
-  useEffect(() => {
-    loadDecomp();
-  }, [id]);
-
-  async function loadDecomp() {
+  const loadDecomp = useCallback(async () => {
     try {
       const data = await fetchDecomposition(id);
       setDecompData(data);
@@ -36,7 +32,11 @@ export default function DecompositionPage() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [id]);
+
+  useEffect(() => {
+    loadDecomp();
+  }, [loadDecomp]);
 
   async function handleRecompute() {
     setRecomputing(true);
