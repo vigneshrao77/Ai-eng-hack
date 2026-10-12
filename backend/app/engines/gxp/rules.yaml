@@ -1,0 +1,64 @@
+# ModernRx GxP Criticality Rules Engine
+# Regulations: 21 CFR Part 11, EU GMP Annex 11, FDA CSA (2025/2026)
+
+rules:
+  - id: RULE_PRODUCT_RELEASE
+    tag: PRODUCT_RELEASE
+    base_tier: HIGH
+    description: "Batch disposition or release decisions directly impacting product safety and quality"
+    signals:
+      name_regex: "(?i)(release|disposition|qp|batchrelease)"
+      calls_any: ["releaseBatch", "dispositionBatch"]
+
+  - id: RULE_ESIG_METHOD
+    tag: E_SIGNATURE
+    base_tier: HIGH
+    description: "Electronic signature workflow with password/credential verification and signature meaning"
+    signals:
+      name_regex: "(?i)(sign|approve|review|esign)"
+      calls_any: ["reviewAndSignResult", "matches", "authenticate"]
+
+  - id: RULE_AUDIT_TRAIL
+    tag: AUDIT_TRAIL
+    base_tier: HIGH
+    description: "Generates, updates, or maintains computer-generated GxP audit trail records"
+    signals:
+      name_regex: "(?i)(audit|history|trail)"
+      table_regex: "(?i)(audit|history|trail)"
+
+  - id: RULE_DATA_INTEGRITY_WRITE
+    tag: DATA_INTEGRITY
+    base_tier: HIGH
+    description: "Direct write path to regulated GxP records (Samples, Results, Batches, Specs)"
+    signals:
+      writes_table_regex: "(?i)(sample|result|batch|specification|deviation|capa|stability)"
+      name_regex: "(?i)(sample|result|batch|test)"
+
+  - id: RULE_ACCESS_CONTROL
+    tag: ACCESS_CONTROL
+    base_tier: MEDIUM
+    description: "Authentication and role-based authorization management"
+    signals:
+      name_regex: "(?i)(security|auth|role|permission|user)"
+      annotations: ["PreAuthorize", "Secured", "RolesAllowed"]
+
+  - id: RULE_DATA_INTEGRITY_READ
+    tag: DATA_INTEGRITY
+    base_tier: MEDIUM
+    description: "Read-only access to regulated records"
+    signals:
+      reads_table_regex: "(?i)(sample|result|batch)"
+
+  - id: RULE_TIME_SOURCE
+    tag: TIME_SOURCE
+    base_tier: MEDIUM
+    description: "Application-generated local timestamps (ALCOA+ contemporaneous time integrity concern)"
+    signals:
+      has_local_timestamp: true
+
+  - id: RULE_REPORTING_ONLY
+    tag: REPORTING_ONLY
+    base_tier: LOW
+    description: "Read-only reporting, analytics, and non-regulated document generation"
+    signals:
+      name_regex: "(?i)(report|analytics|chart|export|dashboard|coa)"
