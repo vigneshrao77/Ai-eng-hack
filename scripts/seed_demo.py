@@ -1,7 +1,7 @@
 import os
 import sys
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Add backend directory to sys.path
 backend_path = Path(__file__).resolve().parent.parent / "backend"
@@ -127,7 +127,7 @@ def seed_demo_data():
                 "project_name": "AcmeLIMS (Legacy Monolith)",
                 "nodes_count": len(nodes_data),
                 "edges_count": len(edges_data),
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             },
         )
 

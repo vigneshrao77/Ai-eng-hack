@@ -56,7 +56,7 @@ def run_plain_hdbscan(
             model = AgglomerativeClustering(n_clusters=max(1, N // 2), metric="precomputed", linkage="average")
             labels = model.fit_predict(dist)
         else:
-            model = HDBSCAN(min_cluster_size=min_cluster_size, metric="precomputed")
+            model = HDBSCAN(min_cluster_size=min_cluster_size, metric="precomputed", copy=True)
             labels = model.fit_predict(dist)
     except Exception as e:
         logger.warning(f"HDBSCAN clustering fallback: {e}")

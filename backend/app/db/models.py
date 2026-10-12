@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 from sqlalchemy import (
     Column,
@@ -20,6 +20,10 @@ def gen_uuid() -> str:
     return str(uuid.uuid4())
 
 
+def utc_now() -> datetime:
+    return datetime.now(timezone.utc)
+
+
 class User(Base):
     __tablename__ = "users"
 
@@ -28,7 +32,7 @@ class User(Base):
     name = Column(String(255), nullable=False)
     role = Column(String(50), nullable=False, default="architect")  # viewer, architect, qa_approver, admin
     password_hash = Column(String(255), nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=utc_now, nullable=False)
 
 
 class Project(Base):
@@ -41,7 +45,7 @@ class Project(Base):
     target_cloud = Column(String(50), default="AWS")  # AWS, Azure, GCP
     status = Column(String(50), default="CREATED")  # CREATED, ANALYZING, ANALYZED, FAILED
     created_by = Column(String(36), ForeignKey("users.id"), nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=utc_now, nullable=False)
 
     jobs = relationship("Job", back_populates="project", cascade="all, delete-orphan")
 
@@ -59,7 +63,7 @@ class Job(Base):
     result_json = Column(JSON, nullable=True)
     started_at = Column(DateTime, nullable=True)
     finished_at = Column(DateTime, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=utc_now, nullable=False)
 
     project = relationship("Project", back_populates="jobs")
 
@@ -74,7 +78,7 @@ class GxpOverride(Base):
     new_tier = Column(String(50), nullable=False)
     reason = Column(Text, nullable=False)
     user_id = Column(String(36), ForeignKey("users.id"), nullable=False)
-    ts = Column(DateTime, default=datetime.utcnow, nullable=False)
+    ts = Column(DateTime, default=utc_now, nullable=False)
 
 
 class Decision(Base):
@@ -96,7 +100,7 @@ class Decision(Base):
     model_id = Column(String(100), nullable=False)
     prompt_hash = Column(String(64), nullable=True)
     input_hash = Column(String(64), nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=utc_now, nullable=False)
 
     approvals = relationship("Approval", back_populates="decision", cascade="all, delete-orphan")
 
@@ -109,7 +113,7 @@ class Approval(Base):
     user_id = Column(String(36), ForeignKey("users.id"), nullable=False)
     action = Column(String(50), nullable=False)  # APPROVED, REJECTED
     comment = Column(Text, nullable=True)
-    ts = Column(DateTime, default=datetime.utcnow, nullable=False)
+    ts = Column(DateTime, default=utc_now, nullable=False)
 
     decision = relationship("Decision", back_populates="approvals")
 
@@ -121,7 +125,7 @@ class Roadmap(Base):
     project_id = Column(String(36), ForeignKey("projects.id"), nullable=False, index=True)
     schedule_json = Column(JSON, nullable=False)
     montecarlo_json = Column(JSON, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=utc_now, nullable=False)
 
 
 class EvidencePack(Base):
@@ -133,14 +137,14 @@ class EvidencePack(Base):
     file_path = Column(String(500), nullable=False)
     file_name = Column(String(255), nullable=False)
     sha256_hash = Column(String(64), nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    created_at = Column(DateTime, default=utc_now, nullable=False)
 
 
 class AuditLog(Base):
     __tablename__ = "audit_log"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    ts = Column(DateTime, default=datetime.utcnow, nullable=False, index=True)
+    ts = Column(DateTime, default=utc_now, nullable=False, index=True)
     actor = Column(String(255), nullable=False)
     action = Column(String(100), nullable=False)
     entity = Column(String(100), nullable=False)
