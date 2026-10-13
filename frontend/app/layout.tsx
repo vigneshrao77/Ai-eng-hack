@@ -14,13 +14,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
-      <body className="min-h-screen flex flex-col bg-black text-zinc-100 antialiased font-sans selection:bg-white selection:text-black">
+    <html lang="en">
+      <body className="min-h-screen flex flex-col bg-[var(--background)] text-[var(--foreground)] antialiased">
         <Navbar />
-        <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <main className="flex-1 max-w-[1440px] w-full mx-auto px-8 py-8">
           {children}
         </main>
-        <footer className="border-t border-zinc-900 bg-black py-4 text-center text-xs text-zinc-500">
+        <footer className="border-t border-[var(--border)] bg-[var(--surface-muted)] py-5 text-center text-xs text-[var(--ink-subtle)]">
           ModernRx &bull; Compliant with FDA CSA (2025/2026) &amp; EU GMP Annex 11 / Draft Annex 22 &bull; Draft Assurance Evidence (Requires QA Review)
         </footer>
       </body>

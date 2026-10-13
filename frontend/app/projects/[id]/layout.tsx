@@ -32,41 +32,42 @@ export default function ProjectLayout({ children }: { children: React.ReactNode 
   ];
 
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="space-y-8 animate-fadeIn">
       {/* Top Project Subheader */}
-      <div className="rounded-xl p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 border border-zinc-800 bg-zinc-950">
+      <div className="rounded-[var(--radius-md)] p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 border border-[var(--border)] bg-white shadow-[var(--shadow-1)]">
         <div className="flex items-center gap-3">
           <Link
             href="/"
-            className="p-2 rounded bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white transition-colors"
+            className="p-2.5 rounded-[var(--radius-sm)] bg-white hover:bg-[var(--surface-raised)] border border-[var(--border)] text-[var(--ink-muted)] hover:text-[var(--foreground)] transition-colors"
             title="Back to Projects"
           >
             <ArrowLeft className="w-4 h-4" />
           </Link>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl font-bold text-white tracking-tight">
+              <h1 className="text-2xl font-semibold text-[var(--foreground)] tracking-tight">
                 {id === "acmelims-demo" ? "AcmeLIMS (Legacy Monolith)" : id}
               </h1>
-              <span className="text-[11px] px-2 py-0.5 rounded bg-zinc-900 text-zinc-300 border border-zinc-700 font-mono">
+              <span className="text-[10px] px-2 py-1 rounded-[var(--radius-sm)] bg-[#edf6f0] text-[var(--success)] border border-[#cce6d5] tracking-[0.12em] uppercase">
                 ACTIVE ASSESSMENT
               </span>
             </div>
-            <p className="text-xs text-zinc-400 font-mono mt-0.5">
-              Target Cloud: <span className="text-zinc-200">AWS</span> &nbsp;|&nbsp; 
-              Scope: <span className="text-zinc-200">Full Monolith Modernization</span>
+            <p className="text-sm text-[var(--ink-muted)] mt-1">
+              Target cloud <span className="text-[var(--foreground)]">AWS</span><span className="mx-2 text-[var(--border-strong)]">/</span>
+              Scope <span className="text-[var(--foreground)]">Full monolith modernization</span>
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 text-xs text-zinc-300 bg-zinc-900 px-3 py-1.5 rounded border border-zinc-800 font-mono">
-          <span>Annex 11 / Part 11 Regulated System</span>
+        <div className="flex items-center gap-2 text-xs text-[var(--ink-muted)] bg-[var(--surface-raised)] px-3 py-2 rounded-[var(--radius-sm)] border border-[var(--border)]">
+          <span className="w-2 h-2 rounded-full bg-[var(--accent)]" aria-hidden="true" />
+          <span>Annex 11 / Part 11 regulated system</span>
         </div>
       </div>
 
-      {/* Modern Horizontal Navigation Tabs - Black & White */}
+      {/* Project modules */}
       <nav
-        className="flex overflow-x-auto gap-1 border-b border-zinc-800 pb-2 scrollbar-none"
+        className="flex overflow-x-auto gap-5 border-b border-[var(--border)] pb-0 scrollbar-none"
         role="tablist"
         aria-label="Project Modules"
       >
@@ -79,10 +80,10 @@ export default function ProjectLayout({ children }: { children: React.ReactNode 
               href={item.href}
               role="tab"
               aria-selected={isActive}
-              className={`flex items-center gap-2 px-3.5 py-2 min-h-[40px] rounded text-xs font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-white ${
+              className={`relative flex items-center gap-2 px-1 py-3 min-h-[42px] text-xs font-medium whitespace-nowrap transition-colors focus-visible:ring-2 focus-visible:ring-[var(--accent)] ${
                 isActive
-                  ? "bg-white text-black font-semibold shadow-sm"
-                  : "text-zinc-400 hover:text-white hover:bg-zinc-900"
+                  ? "text-[var(--primary)] font-semibold after:absolute after:inset-x-0 after:-bottom-px after:h-0.5 after:bg-[var(--primary)]"
+                  : "text-[var(--ink-muted)] hover:text-[var(--foreground)]"
               }`}
             >
               <Icon className="w-4 h-4" aria-hidden="true" />

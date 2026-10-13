@@ -122,7 +122,7 @@ export default function GxpHeatmapPage() {
 
       {overrideSuccessMsg && (
         <div className="p-3 rounded-lg bg-zinc-950 border border-white text-white text-xs flex items-center justify-between font-mono">
-          <span>✓ {overrideSuccessMsg}</span>
+          <span className="flex items-center gap-2"><CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" />{overrideSuccessMsg}</span>
           <button onClick={() => setOverrideSuccessMsg("")} className="text-zinc-400 hover:text-white">
             <X className="w-3.5 h-3.5" />
           </button>
@@ -130,21 +130,22 @@ export default function GxpHeatmapPage() {
       )}
 
       {/* Friendly Guide Banner */}
-      <div className="p-4 rounded-xl bg-zinc-950 border border-zinc-800 text-xs text-zinc-300 space-y-2">
-        <div className="font-bold text-white flex items-center gap-2">
-          <span>💡 Quick Guide: What Risk Tiers Mean in Plain English</span>
+      <div className="p-5 rounded-[var(--radius-md)] bg-white border border-[var(--border)] text-xs text-[var(--ink-muted)] space-y-3 shadow-[var(--shadow-1)]">
+        <div className="font-semibold text-[var(--foreground)] flex items-center gap-2">
+          <ShieldAlert className="w-4 h-4 text-[var(--accent)]" aria-hidden="true" />
+          <span>Risk tiers in plain English</span>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-[11px] pt-1">
           <div className="p-2.5 rounded-lg bg-black border border-zinc-800">
-            <span className="font-bold text-white block mb-1">🔴 HIGH Criticality (Protected)</span>
+            <span className="font-bold text-[var(--error)] block mb-1">HIGH Criticality (Protected)</span>
             Directly writes to databases or regulated records. Keep core logic safe when modernizing.
           </div>
           <div className="p-2.5 rounded-lg bg-black border border-zinc-800">
-            <span className="font-bold text-white block mb-1">🟡 MEDIUM Criticality (Business Logic)</span>
+            <span className="font-bold text-[var(--warning)] block mb-1">MEDIUM Criticality (Business Logic)</span>
             Coordinates workflows and user requests. Decoupling this reduces blast radius.
           </div>
           <div className="p-2.5 rounded-lg bg-black border border-zinc-800">
-            <span className="font-bold text-white block mb-1">🟢 LOW Criticality (Quick Wins)</span>
+            <span className="font-bold text-[var(--success)] block mb-1">LOW Criticality (Quick Wins)</span>
             Reporting and helper tasks. Can be migrated to cloud containers or serverless immediately!
           </div>
         </div>
@@ -184,11 +185,11 @@ export default function GxpHeatmapPage() {
               {/* Plain English Explanation Box */}
               <div className="text-[11px] p-2.5 rounded-md bg-zinc-900/80 border border-zinc-800 space-y-1">
                 <div className="text-zinc-200">
-                  <span className="font-semibold text-white">💡 What this means: </span>
+                  <span className="font-semibold text-[var(--foreground)]">What this means: </span>
                   {gap.plain_meaning || "This component contains configuration or patterns that need cloud remediation."}
                 </div>
                 <div className="text-zinc-400">
-                  <span className="font-semibold text-zinc-300">🛠️ Action needed: </span>
+                  <span className="font-semibold text-[var(--foreground)]">Action needed: </span>
                   {gap.remediation_tip || "Review this component and adapt for cloud best practices."}
                 </div>
               </div>

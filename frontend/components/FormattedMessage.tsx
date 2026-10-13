@@ -359,7 +359,7 @@ export function FormattedMessage({
 
   return (
     <div className="flex flex-col items-start w-full">
-      <div className="w-full rounded-2xl p-4 bg-zinc-900/95 border border-zinc-800/90 shadow-md space-y-3">
+      <div className="assistant-message w-full rounded-2xl p-4 bg-zinc-900/95 border border-zinc-800/90 shadow-md space-y-3">
         {/* Assistant Header */}
         <div className="flex items-center justify-between pb-2 border-b border-zinc-800/80">
           <div className="flex items-center gap-2">

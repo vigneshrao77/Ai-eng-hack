@@ -109,7 +109,117 @@ export default function HomePage() {
   }
 
   return (
-    <div className="space-y-8 animate-fadeIn">
+    <div className="space-y-10 animate-fadeIn">
+      <section className="grid grid-cols-[1.35fr_0.65fr] gap-8 items-end border-b border-[var(--border)] pb-10">
+        <div className="max-w-4xl space-y-5">
+          <div className="eyebrow">Modernization intelligence / regulated systems</div>
+          <h1 className="display-serif text-6xl font-normal text-[var(--foreground)] leading-[0.98]">
+            Make the next move<br />
+            <span className="text-[var(--accent)]">provable.</span>
+          </h1>
+          <p className="max-w-2xl text-[17px] text-[var(--ink-muted)] leading-7">
+            ModernRx turns legacy pharma applications into an evidence-backed modernization plan:
+            architecture, GxP criticality, revalidation scope, and an audit-ready path forward.
+          </p>
+          <div className="flex items-center gap-3 pt-2">
+            <Link
+              href="/projects/acmelims-demo/overview"
+              className="px-5 py-3 rounded-[var(--radius-sm)] bg-[var(--primary)] hover:bg-[#e6f0ea] text-[var(--primary-ink)] font-semibold text-sm flex items-center gap-2 transition-colors"
+            >
+              <Play className="w-4 h-4 fill-current" />
+              <span>Explore AcmeLIMS</span>
+            </Link>
+            <button
+              onClick={() => setAssessmentModalOpen(true)}
+              className="px-5 py-3 rounded-[var(--radius-sm)] bg-transparent hover:bg-[var(--surface-raised)] text-[var(--foreground)] font-medium text-sm flex items-center gap-2 border border-[var(--border-strong)] transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              <span>New assessment</span>
+            </button>
+          </div>
+        </div>
+        <div className="border-l border-[var(--border)] pl-8 pb-1 space-y-5">
+          <div className="eyebrow">Current posture</div>
+          <div>
+            <div className="text-5xl font-semibold tracking-[-0.06em] text-[var(--foreground)] tabular-nums">64<span className="text-xl text-[var(--ink-subtle)]">/100</span></div>
+            <p className="mt-2 text-sm text-[var(--ink-muted)]">Cloud readiness for the active demo assessment</p>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-[var(--success)]">
+            <span className="w-2 h-2 rounded-full bg-current" />
+            <span>Assessment data is current</span>
+          </div>
+        </div>
+      </section>
+
+      <section className="grid grid-cols-4 gap-0 border-y border-[var(--border)]">
+        <div className="py-5 pr-6 border-r border-[var(--border)]">
+          <div className="eyebrow">Pipeline</div>
+          <div className="mt-2 text-2xl font-semibold text-[var(--foreground)]">7 engines</div>
+          <p className="mt-1 text-xs text-[var(--ink-muted)]">From source scan to evidence pack</p>
+        </div>
+        <div className="py-5 px-6 border-r border-[var(--border)]">
+          <div className="eyebrow">Criticality</div>
+          <div className="mt-2 text-2xl font-semibold text-[var(--foreground)]">Part 11</div>
+          <p className="mt-1 text-xs text-[var(--ink-muted)]">Audit, signatures, release controls</p>
+        </div>
+        <div className="py-5 px-6 border-r border-[var(--border)]">
+          <div className="eyebrow">Scope cut</div>
+          <div className="mt-2 text-2xl font-semibold text-[var(--accent)]">−44%</div>
+          <p className="mt-1 text-xs text-[var(--ink-muted)]">Revalidation footprint vs baseline</p>
+        </div>
+        <div className="py-5 pl-6">
+          <div className="eyebrow">Integrity</div>
+          <div className="mt-2 text-2xl font-semibold text-[var(--foreground)]">SHA-256</div>
+          <p className="mt-1 text-xs text-[var(--ink-muted)]">Tamper-evident evidence ledger</p>
+        </div>
+      </section>
+
+      {/* Active assessments */}
+      <section className="space-y-5">
+        <div className="flex items-end justify-between">
+          <div>
+            <div className="eyebrow">Workspace</div>
+            <h2 className="mt-2 text-2xl font-semibold text-[var(--foreground)]">Active assessments</h2>
+          </div>
+          <span className="text-sm text-[var(--ink-muted)]">{projects.length} project{projects.length === 1 ? "" : "s"}</span>
+        </div>
+        <div className="grid grid-cols-1 gap-4">
+          {projects.map((proj) => (
+            <div
+              key={proj.id}
+              className="p-6 rounded-[var(--radius-md)] bg-[var(--surface)] border border-[var(--border)] hover:border-[var(--border-strong)] shadow-[var(--shadow-1)] transition-colors group"
+            >
+              <div className="flex items-center justify-between gap-6">
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3">
+                    <h3 className="text-xl font-semibold text-[var(--foreground)]">{proj.name}</h3>
+                    <span className="px-2.5 py-1 rounded-full text-[10px] tracking-[0.12em] uppercase bg-[rgba(145,201,166,0.12)] text-[var(--success)] border border-[rgba(145,201,166,0.3)]">{proj.status}</span>
+                  </div>
+                  <p className="text-sm text-[var(--ink-muted)]">
+                    {proj.repo_url} <span className="mx-2 text-[var(--border-strong)]">/</span> {proj.target_cloud} target <span className="mx-2 text-[var(--border-strong)]">/</span> assessed {proj.created_at}
+                  </p>
+                </div>
+                <div className="flex items-center gap-8">
+                  <div>
+                    <div className="eyebrow">Readiness</div>
+                    <div className="mt-1 text-xl font-semibold text-[var(--foreground)] tabular-nums">{proj.readiness_score}</div>
+                  </div>
+                  <div>
+                    <div className="eyebrow">Scope cut</div>
+                    <div className="mt-1 text-xl font-semibold text-[var(--accent)] tabular-nums">{proj.reval_scope_reduction}</div>
+                  </div>
+                  <Link href={`/projects/${proj.id}/overview`} className="px-4 py-2.5 rounded-[var(--radius-sm)] bg-[var(--primary)] hover:bg-[#e6f0ea] text-[var(--primary-ink)] text-sm font-semibold flex items-center gap-2 transition-colors">
+                    View assessment <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Existing detail modules remain available below the primary workspace view. */}
+      <div className="hidden">
       {/* Hero Banner - Black & White Enterprise */}
       <div className="rounded-xl p-8 border border-zinc-800 bg-zinc-950">
         <div className="max-w-3xl space-y-4">
@@ -297,6 +407,8 @@ export default function HomePage() {
             </div>
           ))}
         </div>
+      </div>
+
       </div>
 
       {/* Assessment Modal */}
