@@ -75,10 +75,19 @@ def evaluate_node_readiness(node: Dict[str, Any], graph_context: Dict[str, Any])
         })
 
     # 4. Framework / Runtime EOL (15 pts)
-    # AcmeLIMS is Spring Boot 2.7.x (EOL Nov 2023)
-    if node.get("label") == "Class":
-        sev = 0.5  # Spring Boot 2.7 legacy EOL deduction
+    # Dynamically inspect code, annotations, or packages for deprecated/EOL runtimes
+    raw_code = node.get("raw_code", "")
+    annotations_str = " ".join(node.get("annotations", []))
+    has_spring2_eol = ("SpringBoot" in annotations_str or "org.springframework" in raw_code) and any(v in raw_code or v in annotations_str for v in ("2.0", "2.1", "2.2", "2.3", "2.4", "2.5", "2.6", "2.7"))
+    has_py2_eol = "print " in raw_code and "print(" not in raw_code
+    if has_spring2_eol or has_py2_eol:
+        sev = 0.5
         ded_pts = round(CHECK_WEIGHTS["FRAMEWORK_EOL"] * sev, 1)
+        reason_text = (
+            "Built against legacy Spring Boot 2.x which has reached End-Of-Life (EOL)."
+            if has_spring2_eol
+            else "Legacy Python 2 runtime syntax detected (EOL)."
+        )
         deductions.append({
             "check": "FRAMEWORK_EOL",
             "check_name": "Framework / Runtime EOL",
@@ -86,7 +95,7 @@ def evaluate_node_readiness(node: Dict[str, Any], graph_context: Dict[str, Any])
             "severity": sev,
             "deduction": ded_pts,
             "points_deducted": ded_pts,
-            "reason": "Built against legacy Spring Boot 2.x which has reached End-Of-Life (EOL). Upgrade to Spring Boot 3 / Cloud Native recommended.",
+            "reason": f"{reason_text} Upgrade to modern cloud-native runtime recommended.",
             "evidence_node_ids": [nid],
         })
 

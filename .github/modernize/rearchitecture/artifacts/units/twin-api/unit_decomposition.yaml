@@ -1,0 +1,7 @@
+unit: twin-api
+commit: false
+candidate_splits:
+  - id: "backend/app/api/routes_twin.py:25-130"
+    drivers: [execution_model_split, concern_split]
+    rationale: "Analysis submission, graph projection, and C4 rendering expose different lifecycle and output concerns."
+    source_slice: {file: "backend/app/api/routes_twin.py", lines: [25, 130]}

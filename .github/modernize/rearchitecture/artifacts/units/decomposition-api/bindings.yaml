@@ -1,0 +1,14 @@
+unit: decomposition-api
+bindings:
+  - type: route-declaration
+    name: "POST /projects/{id}/decompose and GET /projects/{id}/decomposition"
+    source_loc: "backend/app/api/routes_decomp.py:23"
+    target: "decomposition handlers"
+    must_appear_in_target: true
+runtime_config:
+  - key: "DECOMP_WEIGHTS, DECOMP_GAMMA"
+    source_loc: "backend/app/api/routes_decomp.py:17"
+    source: env
+    default_value: "0.30,0.20,0.25,0.10,0.15 / 1.5"
+    must_appear_in_target: true
+    notes: "Controls decomposition scoring."

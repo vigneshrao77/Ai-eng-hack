@@ -1,0 +1,26 @@
+unit: auth-api
+side_effects:
+  - source_loc: "backend/app/api/routes_auth.py:47"
+    effect: "logs failed login attempts"
+    must_preserve: true
+  - source_loc: "backend/app/api/routes_auth.py:54"
+    effect: "logs successful login"
+    must_preserve: true
+branches:
+  - source_loc: "backend/app/api/routes_auth.py:37"
+    condition: "user missing or password verification fails"
+    behavior: "returns 401 with bearer challenge and generic error"
+    must_preserve: true
+error_paths:
+  - source_loc: "backend/app/api/routes_auth.py:39"
+    trigger: "invalid credentials"
+    outcome: "login rejected"
+    contract: "HTTP 401, WWW-Authenticate Bearer, detail Incorrect email or password"
+    must_preserve: true
+concurrency:
+  model: sync
+  tx_boundary:
+    source_loc: "backend/app/api/routes_auth.py:34"
+    scope: "read user and verify password"
+    isolation: "database default"
+    must_preserve: true

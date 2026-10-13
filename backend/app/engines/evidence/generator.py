@@ -56,7 +56,7 @@ def generate_wave_evidence_pdf(
     Generates a comprehensive, pharma-grade CSA Evidence Pack PDF for the specified migration wave.
     """
     project = db.query(Project).filter(Project.id == project_id).first()
-    project_name = project.name if project else "AcmeLIMS"
+    project_name = project.name if (project and project.name) else "Uploaded Application"
     target_cloud = project.target_cloud if project else "AWS"
 
     store = get_graph_store(project_id)

@@ -41,8 +41,9 @@ export default function ReadinessPage() {
   }, [id]);
 
   const components = readinessData?.components || [];
-  const deadCode = readinessData?.dead_code_candidates || [];
-  const quickWins = readinessData?.quick_win_candidates || [];
+  const deadCode = readinessData?.dead_code_candidates || readinessData?.dead_code || [];
+  const quickWins = readinessData?.quick_win_candidates || readinessData?.quick_wins || [];
+  const avgScore = readinessData?.average_readiness_score ?? readinessData?.average_readiness ?? 68.4;
 
   return (
     <div className="space-y-6 animate-fadeIn">
@@ -62,7 +63,7 @@ export default function ReadinessPage() {
           <div>
             <span className="text-[10px] text-zinc-400 uppercase font-mono block">Average Score</span>
             <span className="text-2xl font-black text-white font-mono">
-              {readinessData?.average_readiness_score ?? 68.4}/100
+              {avgScore}/100
             </span>
           </div>
           <div className="h-8 w-px bg-zinc-800" />
@@ -83,13 +84,20 @@ export default function ReadinessPage() {
           </div>
 
           <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
-            {components.map((comp: any) => {
-              const isSelected = selectedComp?.id === comp.id;
+            {components.map((comp: any, idx: number) => {
+              const compId = comp.id || comp.node_id || `comp-${idx}`;
+              const selectedId = selectedComp?.id || selectedComp?.node_id;
+              const isSelected = selectedId === compId;
               const score = comp.score ?? 75;
+              const displayName =
+                comp.name ||
+                comp.class_name ||
+                (typeof compId === "string" ? compId.split(".").pop() : "") ||
+                `Component ${idx + 1}`;
 
               return (
                 <div
-                  key={comp.id}
+                  key={compId}
                   onClick={() => setSelectedComp(comp)}
                   className={`p-3 rounded-lg border cursor-pointer transition-all ${
                     isSelected
@@ -99,7 +107,7 @@ export default function ReadinessPage() {
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-semibold text-xs text-white truncate max-w-[170px]">
-                      {comp.name || comp.id.split(".").pop()}
+                      {displayName}
                     </span>
                     <span className="font-mono font-bold text-xs text-white">{score}/100</span>
                   </div>
@@ -126,7 +134,7 @@ export default function ReadinessPage() {
                 Deduction Audit Trail &amp; Evidence
               </span>
               <p className="text-[11px] text-zinc-400">
-                Target: <span className="text-white font-mono">{selectedComp?.id}</span>
+                Target: <span className="text-white font-mono">{selectedComp?.id || selectedComp?.node_id || selectedComp?.name || "None"}</span>
               </p>
             </div>
             {selectedComp && (
@@ -170,7 +178,7 @@ export default function ReadinessPage() {
                             key={i}
                             className="font-mono text-[10px] px-2 py-0.5 rounded bg-black text-zinc-300 border border-zinc-800"
                           >
-                            {nid.split(".").pop()}
+                            {typeof nid === "string" ? nid.split(".").pop() : String(nid)}
                           </span>
                         ))}
                       </div>
@@ -211,7 +219,9 @@ export default function ReadinessPage() {
                   className="p-3 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-between text-xs"
                 >
                   <div>
-                    <span className="font-semibold text-white block">{dc.name || dc.id}</span>
+                    <span className="font-semibold text-white block">
+                      {dc.name || dc.class_name || dc.node_id || dc.id || "Dead Code Candidate"}
+                    </span>
                     <span className="text-[10px] text-zinc-500 font-mono">
                       {dc.reason || "Zero caller fan-in; candidate for immediate retirement"}
                     </span>
@@ -247,7 +257,9 @@ export default function ReadinessPage() {
                   className="p-3 rounded-lg bg-zinc-950 border border-zinc-800 flex items-center justify-between text-xs"
                 >
                   <div>
-                    <span className="font-semibold text-white block">{qw.name || qw.id}</span>
+                    <span className="font-semibold text-white block">
+                      {qw.name || qw.class_name || qw.node_id || qw.id || "Quick-Win Candidate"}
+                    </span>
                     <span className="text-[10px] text-zinc-500 font-mono">
                       {qw.reason || "Read-only reporting service with zero batch release impact"}
                     </span>

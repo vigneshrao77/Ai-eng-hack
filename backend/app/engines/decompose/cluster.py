@@ -92,10 +92,10 @@ def run_modernrx_constrained(
     partition = dict(base_partition)
 
     # 1. Identify Must-Link Constraints:
-    # Nodes on the same HIGH-tier write path to regulated tables stay together in cohesive core
+    # Nodes on the same HIGH-tier write path to regulated datastores stay together in cohesive core
     high_write_nodes = [
         n["id"] for n in nodes
-        if n.get("gxp_tier") == "HIGH" and n["id"] in ("SampleService", "ResultService", "ReviewService", "BatchReleaseService", "AuditTrailService")
+        if n.get("gxp_tier") == "HIGH"
     ]
 
     core_cluster_id = "modernrx_gxp_validated_core"
@@ -108,18 +108,20 @@ def run_modernrx_constrained(
     for nid in node_ids:
         if node_dict.get(nid, {}).get("gxp_tier") == "LOW" and partition.get(nid) == core_cluster_id:
             # Move out to dedicated low-risk cluster
-            partition[nid] = f"modernrx_service_{nid.lower()}"
+            clean_id = nid.lower().replace(".", "_")
+            partition[nid] = f"service_{clean_id}"
 
-    # Group utilities and outliers
+    # Group utilities and outliers dynamically by detected domain keywords
     for nid in node_ids:
-        if "Unused" in nid:
-            partition[nid] = "modernrx_retire_candidates"
-        elif "Report" in nid:
-            partition[nid] = "modernrx_reporting_service"
-        elif "Instrument" in nid:
-            partition[nid] = "modernrx_instrument_service"
-        elif "Security" in nid or "Admin" in nid:
-            partition[nid] = "modernrx_security_iam_service"
+        n_low = nid.lower()
+        if any(k in n_low for k in ("unused", "deprecated", "obsolete")):
+            partition[nid] = "retire_candidates"
+        elif any(k in n_low for k in ("report", "export", "analytics", "dashboard")):
+            partition[nid] = "analytics_reporting_service"
+        elif any(k in n_low for k in ("security", "auth", "login", "admin", "oauth")):
+            partition[nid] = "security_iam_service"
+        elif any(k in n_low for k in ("data", "db", "dao", "repository", "store")):
+            partition[nid] = "persistence_data_service"
 
     return partition
 

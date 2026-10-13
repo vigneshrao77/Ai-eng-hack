@@ -1,0 +1,8 @@
+unit: jobs-api
+bindings:
+  - type: route-declaration
+    name: "GET /jobs/{job_id}"
+    source_loc: "backend/app/api/routes_jobs.py:9"
+    target: "get_job_status"
+    must_appear_in_target: true
+runtime_config: []

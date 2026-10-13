@@ -113,15 +113,24 @@ def run_gxp_scan(store: GraphStore) -> Dict[str, Any]:
 
     # 3. Compliance Gap Detection
     # Gap 1: Audit trail missing reason column
-    if "AuditTrailService" in node_tiers or any("audit" in n.lower() for n in node_tiers):
+    audit_matching_nodes = [nid for nid in node_tiers if "audit" in nid.lower()]
+    if audit_matching_nodes:
+        matched_evidence = [nid for nid in audit_matching_nodes if nid in store.graph.nodes]
+        tbl_nodes = [n["id"] for n in store.get_all_nodes() if "audit" in n.get("name", "").lower() or "audit" in n.get("id", "").lower()]
+        for t in tbl_nodes:
+            if t not in matched_evidence:
+                matched_evidence.append(t)
+        primary_name = audit_matching_nodes[0]
         gaps.append({
             "id": "GAP_AUDIT_NO_REASON",
             "code": "GAP_AUDIT_NO_REASON",
-            "title": "Audit Trail Schema Missing 'Reason' Field",
+            "title": f"Audit Logging Schema Missing 'Reason' Field ({primary_name})",
             "severity": "CRITICAL",
             "regulation": "21 CFR Part 11.10(e) & EU GMP Annex 11 Clause 9",
-            "description": "AUDIT_TRAIL table and service log mutations without mandatory regulatory reason for change.",
-            "evidence_node_ids": ["AuditTrailService", "TABLE_AUDIT_TRAIL"],
+            "description": f"Component(s) {', '.join(audit_matching_nodes[:3])} record mutations without mandatory regulatory reason for change.",
+            "plain_meaning": "Records are updated without recording why the change occurred.",
+            "remediation_tip": "Add a required 'reason_for_change' field or comment prompt when creating/editing audit entries.",
+            "evidence_node_ids": matched_evidence[:4] or [primary_name],
         })
 
     # Gap 2: Local app-server timestamp generation
@@ -134,6 +143,8 @@ def run_gxp_scan(store: GraphStore) -> Dict[str, Any]:
                 "severity": "HIGH",
                 "regulation": "ALCOA+ Contemporaneous Integrity & FDA CSA",
                 "description": f"Component {nid} calls new Date() / System.currentTimeMillis() local timestamp generation instead of synchronized network time source.",
+                "plain_meaning": f"Component {nid} uses the local computer's clock instead of a verified, synchronized cloud time server.",
+                "remediation_tip": "Use a synchronized NTP network time source or database timestamp (UTC) to guarantee accurate audit logs.",
                 "evidence_node_ids": [nid],
             })
 
@@ -147,6 +158,8 @@ def run_gxp_scan(store: GraphStore) -> Dict[str, Any]:
                 "severity": "HIGH",
                 "regulation": "12-Factor III/VI & Cloud Portability",
                 "description": f"Component {nid} accesses local path (e.g. C:\\instrument\\import), preventing cloud containerization without shared volumes.",
+                "plain_meaning": f"Component {nid} reads or writes files directly to local folders (like C:\\ drive), which breaks in cloud containers.",
+                "remediation_tip": "Replace local hard drives with cloud object storage (such as AWS S3 or Azure Blob Storage).",
                 "evidence_node_ids": [nid],
             })
 
@@ -163,6 +176,8 @@ def run_gxp_scan(store: GraphStore) -> Dict[str, Any]:
                 "severity": "MEDIUM",
                 "regulation": "FDA CSA Bounded Context & Blast-Radius",
                 "description": f"Regulated table {tbl} is written by HIGH-tier services and directly read by reporting services, increasing re-validation blast radius.",
+                "plain_meaning": f"Reporting tools read directly from the main database table ({tbl}), which forces full system re-testing whenever reports change.",
+                "remediation_tip": "Stream data into a separate read-only reporting database or data lake using event queues.",
                 "evidence_node_ids": writers + readers + [tbl],
             })
 
@@ -177,6 +192,8 @@ def run_gxp_scan(store: GraphStore) -> Dict[str, Any]:
                 "severity": "CRITICAL",
                 "regulation": "Annex 11 Security & Zero-Trust IAM",
                 "description": f"Config key {cfg.get('key')} contains embedded plaintext secret in repository.",
+                "plain_meaning": f"Configuration key '{cfg.get('key')}' has a password or secret written directly in code or properties files.",
+                "remediation_tip": "Move credentials into environment variables or a secure key vault (e.g. AWS Secrets Manager).",
                 "evidence_node_ids": [cfg["id"]],
             })
 

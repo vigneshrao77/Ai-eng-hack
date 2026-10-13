@@ -1,0 +1,27 @@
+unit: gxp-api
+side_effects:
+  - source_loc: "backend/app/api/routes_gxp.py:49-72"
+    effect: "persists GxP override, appends an audit event, mutates graph node tier/rationale, and persists graph"
+    must_preserve: true
+branches:
+  - source_loc: "backend/app/api/routes_gxp.py:42"
+    condition: "node is absent"
+    behavior: "returns 404"
+    must_preserve: true
+  - source_loc: "backend/app/api/routes_gxp.py:46"
+    condition: "new tier equals old tier"
+    behavior: "returns unchanged without mutation"
+    must_preserve: true
+error_paths:
+  - source_loc: "backend/app/api/routes_gxp.py:42"
+    trigger: "unknown graph node"
+    outcome: "override rejected"
+    contract: "HTTP 404 Node not found in Twin Graph"
+    must_preserve: true
+concurrency:
+  model: sync
+  tx_boundary:
+    source_loc: "backend/app/api/routes_gxp.py:49-51"
+    scope: "override record commit; graph and audit follow"
+    isolation: "database default"
+    must_preserve: true

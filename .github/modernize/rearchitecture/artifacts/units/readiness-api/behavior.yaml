@@ -1,0 +1,23 @@
+unit: readiness-api
+side_effects:
+  - source_loc: "backend/app/api/routes_readiness.py:18-26"
+    effect: "may build and persist a living twin when readiness is requested for an empty graph"
+    must_preserve: true
+branches:
+  - source_loc: "backend/app/api/routes_readiness.py:28"
+    condition: "graph remains empty"
+    behavior: "returns 404 instructing caller to analyze first"
+    must_preserve: true
+error_paths:
+  - source_loc: "backend/app/api/routes_readiness.py:28"
+    trigger: "twin graph is not initialized"
+    outcome: "readiness is unavailable"
+    contract: "HTTP 404"
+    must_preserve: true
+concurrency:
+  model: sync
+  tx_boundary:
+    source_loc: "backend/app/api/routes_readiness.py:14"
+    scope: "graph read and optional project status update"
+    isolation: "database default"
+    must_preserve: true

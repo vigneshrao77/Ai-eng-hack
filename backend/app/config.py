@@ -11,9 +11,13 @@ class Settings(BaseSettings):
     STANDALONE_LOCAL_MODE: bool = True
     OFFLINE_DEMO_MODE: bool = True
 
-    # LLM Settings
-    ANTHROPIC_API_KEY: str = ""
-    LLM_MODEL: str = "claude-3-5-sonnet-20241022"
+    # LLM Settings (Local Ollama / Google Gemini)
+    LLM_PROVIDER: str = "ollama"  # "ollama", "gemini", or "auto"
+    OLLAMA_BASE_URL: str = "http://localhost:11434"
+    LOCAL_MODEL_NAME: str = "llama3.2:latest"
+    GEMINI_API_KEY: str = ""
+    ANTHROPIC_API_KEY: str = ""  # Deprecated backward-compatibility alias
+    LLM_MODEL: str = "gemini-2.5-flash"
     LLM_TEMPERATURE: float = 0.2
     LLM_MAX_TOKENS: int = 4000
     LLM_SEND_RAW_CODE: bool = False

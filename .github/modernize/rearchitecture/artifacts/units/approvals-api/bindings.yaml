@@ -1,0 +1,8 @@
+unit: approvals-api
+bindings:
+  - type: route-declaration
+    name: "POST /decisions/{id}/approve and /reject"
+    source_loc: "backend/app/api/routes_approvals.py:18"
+    target: "approve_decision/reject_decision"
+    must_appear_in_target: true
+runtime_config: []

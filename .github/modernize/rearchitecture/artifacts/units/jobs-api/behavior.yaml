@@ -1,0 +1,20 @@
+unit: jobs-api
+side_effects: []
+branches:
+  - source_loc: "backend/app/api/routes_jobs.py:11"
+    condition: "job ID is missing"
+    behavior: "returns not-found response"
+    must_preserve: true
+error_paths:
+  - source_loc: "backend/app/api/routes_jobs.py:11"
+    trigger: "no matching Job row"
+    outcome: "job status cannot be returned"
+    contract: "HTTP 404 Job {job_id} not found"
+    must_preserve: true
+concurrency:
+  model: sync
+  tx_boundary:
+    source_loc: "backend/app/api/routes_jobs.py:9"
+    scope: "single job read"
+    isolation: "database default"
+    must_preserve: true

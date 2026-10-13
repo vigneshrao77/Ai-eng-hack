@@ -1,0 +1,26 @@
+unit: roadmap-api
+side_effects:
+  - source_loc: "backend/app/api/routes_roadmap.py:45-54"
+    effect: "runs CP-SAT scheduling and 10,000-run PERT simulation and persists baseline roadmap"
+    must_preserve: true
+  - source_loc: "backend/app/api/routes_roadmap.py:115"
+    effect: "what-if simulation runs without persisting baseline"
+    must_preserve: true
+branches:
+  - source_loc: "backend/app/api/routes_roadmap.py:77-87"
+    condition: "no saved roadmap exists"
+    behavior: "generates and persists a baseline on read"
+    must_preserve: true
+error_paths:
+  - source_loc: "backend/app/api/routes_roadmap.py:40"
+    trigger: "project ID is absent"
+    outcome: "roadmap is unavailable"
+    contract: "HTTP 404 Project not found"
+    must_preserve: true
+concurrency:
+  model: sync
+  tx_boundary:
+    source_loc: "backend/app/api/routes_roadmap.py:31"
+    scope: "roadmap generation and optional Roadmap persistence"
+    isolation: "database default"
+    must_preserve: true

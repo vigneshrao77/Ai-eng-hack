@@ -1,0 +1,7 @@
+unit: council-api
+commit: false
+candidate_splits:
+  - id: "backend/app/api/routes_council.py:20-111"
+    drivers: [execution_model_split, concern_split]
+    rationale: "Council execution invokes multi-agent synthesis while decision retrieval projects persisted approval state."
+    source_slice: {file: "backend/app/api/routes_council.py", lines: [20, 111]}

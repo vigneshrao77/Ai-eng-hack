@@ -1,0 +1,13 @@
+unit: audit-api
+bindings:
+  - type: route-declaration
+    name: "GET /audit"
+    source_loc: "backend/app/api/routes_audit.py:25"
+    target: "get_audit_logs"
+    must_appear_in_target: true
+  - type: route-declaration
+    name: "GET /audit/verify"
+    source_loc: "backend/app/api/routes_audit.py:56"
+    target: "verify_chain"
+    must_appear_in_target: true
+runtime_config: []

@@ -1,0 +1,13 @@
+unit: council-api
+bindings:
+  - type: route-declaration
+    name: "POST /projects/{id}/council/run"
+    source_loc: "backend/app/api/routes_council.py:20"
+    target: "trigger_council_run"
+    must_appear_in_target: true
+  - type: route-declaration
+    name: "GET /projects/{id}/council/decisions"
+    source_loc: "backend/app/api/routes_council.py:55"
+    target: "get_council_decisions"
+    must_appear_in_target: true
+runtime_config: []

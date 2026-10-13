@@ -42,7 +42,9 @@ def calculate_project_readiness(store: GraphStore) -> Dict[str, Any]:
         store.graph.nodes[nid]["readiness_deductions"] = res["deductions"]
 
         comp_info = {
+            "id": nid,
             "node_id": nid,
+            "name": node.get("class_name", nid),
             "class_name": node.get("class_name", nid),
             "fqn": node.get("fqn", ""),
             "score": score,
@@ -54,21 +56,28 @@ def calculate_project_readiness(store: GraphStore) -> Dict[str, Any]:
         }
         component_scores.append(comp_info)
 
-        # Opportunity 1: Dead code (0 fan-in and 0 endpoints)
+        # Opportunity 1: Dead code (0 fan-in, isolated or unused)
         fan_in = store.graph.in_degree(nid) if nid in store.graph else 0
-        if fan_in == 0 and "Unused" in nid:
+        out_deg = store.graph.out_degree(nid) if nid in store.graph else 0
+        is_isolated = (fan_in == 0 and out_deg == 0 and len(nodes) > 3)
+        is_named_unused = any(k in nid.lower() for k in ("unused", "deprecated", "obsolete", "dead"))
+        if (is_isolated or is_named_unused) and not any(k in nid.lower() for k in ("main", "app", "index", "root", "server")):
             dead_code_candidates.append({
+                "id": nid,
                 "node_id": nid,
+                "name": node.get("class_name", nid),
                 "class_name": node.get("class_name", nid),
                 "loc": node.get("loc", 0),
-                "reason": "Zero inbound calls detected and not exposed as an HTTP endpoint or scheduled task.",
+                "reason": "Zero inbound calls detected and no active downstream dataflow dependencies.",
                 "recommendation": "7R Retire candidate. Safe deletion saves maintenance and reduces attack surface.",
             })
 
         # Opportunity 2: Quick-Win Rehost (High readiness >= 75 and LOW/MEDIUM GxP tier)
         if score >= 75 and node.get("gxp_tier") in ("LOW", "MEDIUM"):
             quick_wins.append({
+                "id": nid,
                 "node_id": nid,
+                "name": node.get("class_name", nid),
                 "class_name": node.get("class_name", nid),
                 "score": score,
                 "gxp_tier": node.get("gxp_tier"),
@@ -82,8 +91,11 @@ def calculate_project_readiness(store: GraphStore) -> Dict[str, Any]:
 
     return {
         "average_readiness": avg_score,
+        "average_readiness_score": avg_score,
         "total_components": len(component_scores),
         "components": component_scores,
         "dead_code": dead_code_candidates,
+        "dead_code_candidates": dead_code_candidates,
         "quick_wins": quick_wins,
+        "quick_win_candidates": quick_wins,
     }

@@ -1,0 +1,19 @@
+unit: projects-api
+bindings:
+  - type: route-declaration
+    name: "POST/GET /projects and POST /projects/{id}/upload"
+    source_loc: "backend/app/api/routes_projects.py:37"
+    target: "project handlers"
+    must_appear_in_target: true
+  - type: di-registration
+    name: "require_roles([architect, admin])"
+    source_loc: "backend/app/api/routes_projects.py:40"
+    target: "create_project/upload_repository_zip"
+    must_appear_in_target: true
+runtime_config:
+  - key: "data/uploads"
+    source_loc: "backend/app/api/routes_projects.py:133"
+    source: code
+    default_value: "data/uploads"
+    must_appear_in_target: true
+    notes: "Repository extraction root."

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import {
   Layers,
@@ -14,8 +14,11 @@ import {
   Info,
   ChevronRight,
   X,
+  Trash2,
+  Sparkles,
 } from "lucide-react";
 import { fetchTwinGraph, askTwin } from "@/lib/api";
+import { FormattedMessage } from "@/components/FormattedMessage";
 
 export default function TwinGraphPage() {
   const params = useParams();
@@ -32,24 +35,43 @@ export default function TwinGraphPage() {
   // Ask-the-Twin Drawer State
   const [chatOpen, setChatOpen] = useState(false);
   const [chatQuestion, setChatQuestion] = useState("");
-  const [chatMessages, setChatMessages] = useState<Array<{ role: string; content: string; evidence?: string[] }>>([
+  const [chatMessages, setChatMessages] = useState<
+    Array<{ role: string; content: string; evidence?: string[]; source?: string }>
+  >([
     {
       role: "assistant",
       content:
-        "Hello! I am your Living Architecture Twin AI assistant. Ask me questions about component dependencies, blast radius, or who writes to regulated tables.",
+        "Hello! I am your AI Architecture Advisor. Ask me anything about your project in plain English—like what each component does, how data flows, or the easiest way to modernize it into the cloud.",
+      source: "Architecture Twin Advisor",
     },
   ]);
   const [asking, setAsking] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (chatOpen) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      inputRef.current?.focus();
+    }
+  }, [chatMessages, asking, chatOpen]);
 
   useEffect(() => {
     async function loadGraph() {
       try {
         const data = await fetchTwinGraph(id);
-        if (data && data.nodes) {
-          setGraphData(data);
-          if (data.nodes.length > 0) {
-            setSelectedNode(data.nodes[0]);
-          }
+        const rawNodes =
+          data?.nodes ||
+          (data?.elements?.nodes ? data.elements.nodes.map((n: any) => n.data || n) : []) ||
+          [];
+        const rawEdges =
+          data?.edges ||
+          (data?.elements?.edges ? data.elements.edges.map((e: any) => e.data || e) : []) ||
+          [];
+
+        setGraphData({ nodes: rawNodes, edges: rawEdges });
+        if (rawNodes.length > 0) {
+          setSelectedNode(rawNodes[0]);
         }
       } catch (e) {
         console.error("Failed to load twin graph:", e);
@@ -79,7 +101,8 @@ export default function TwinGraphPage() {
         {
           role: "assistant",
           content: res.answer || "No response received.",
-          evidence: res.evidence_ids || [],
+          evidence: res.evidence_node_ids || res.evidence_ids || [],
+          source: res.source || "Architecture Twin Advisor",
         },
       ]);
     } catch (e: any) {
@@ -96,9 +119,10 @@ export default function TwinGraphPage() {
   }
 
   const sampleQuestions = [
-    "Who writes to the regulated RESULT table?",
-    "What is the blast radius of changing SampleService?",
-    "Which components have local filesystem dependencies?",
+    "What does this application do in plain English?",
+    "Which components are highest risk and why?",
+    "What are the best steps to modernize this into the cloud?",
+    "Who connects to the database or external services?",
   ];
 
   return (
@@ -165,7 +189,7 @@ export default function TwinGraphPage() {
                   >
                     <div className="flex items-center justify-between">
                       <span className="font-semibold text-xs text-white truncate max-w-[180px]">
-                        {node.name || node.id.split(".").pop()}
+                        {node.name || (typeof node.id === "string" ? node.id.split(".").pop() : "") || "Component"}
                       </span>
                       <span
                         className={`text-[10px] px-1.5 py-0.5 rounded font-mono font-medium ${
@@ -305,98 +329,117 @@ export default function TwinGraphPage() {
       {/* Ask the Twin Slide-Over Chat Modal */}
       {chatOpen && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex justify-end animate-fadeIn">
-          <div className="w-full max-w-md bg-black border-l border-zinc-800 h-full flex flex-col shadow-2xl">
+          <div className="w-full max-w-xl md:max-w-2xl bg-black border-l border-zinc-800 h-full flex flex-col shadow-2xl">
             {/* Header */}
             <div className="p-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-950">
-              <div className="flex items-center gap-2">
-                <MessageSquare className="w-4 h-4 text-white" />
-                <h3 className="font-bold text-white text-sm">Architecture Knowledge Query</h3>
+              <div className="flex items-center gap-2.5">
+                <div className="p-1.5 rounded-lg bg-white text-black font-bold">
+                  <MessageSquare className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-white text-sm">Architecture AI Advisor</h3>
+                  <p className="text-[10px] text-zinc-400 font-mono">Living Twin Graph Knowledge Query</p>
+                </div>
               </div>
-              <button
-                onClick={() => setChatOpen(false)}
-                className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-900"
-              >
-                <X className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-1.5">
+                {chatMessages.length > 1 && (
+                  <button
+                    onClick={() =>
+                      setChatMessages([
+                        {
+                          role: "assistant",
+                          content:
+                            "Hello! I am your AI Architecture Advisor. Ask me anything about your project in plain English—like what each component does, how data flows, or the easiest way to modernize it into the cloud.",
+                          source: "Architecture Twin Advisor",
+                        },
+                      ])
+                    }
+                    className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-900 transition-colors"
+                    title="Clear chat history"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                )}
+                <button
+                  onClick={() => setChatOpen(false)}
+                  className="p-1.5 rounded-lg text-zinc-400 hover:text-white hover:bg-zinc-900 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
             </div>
 
             {/* Suggested Prompts */}
             <div className="p-3 bg-zinc-950 border-b border-zinc-800">
-              <span className="text-[10px] text-zinc-400 uppercase font-semibold">Suggested Queries:</span>
-              <div className="flex flex-col gap-1.5 mt-2">
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[10px] text-zinc-400 uppercase font-mono font-semibold">
+                  Suggested Questions (Click to Ask):
+                </span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                 {sampleQuestions.map((q, i) => (
                   <button
                     key={i}
                     onClick={() => handleSendQuestion(q)}
-                    className="text-left text-xs text-zinc-300 hover:text-black hover:bg-white px-2.5 py-1.5 rounded border border-zinc-800 hover:border-white transition-all truncate"
+                    className="text-left text-[11px] text-zinc-300 hover:text-black hover:bg-white px-2.5 py-1.5 rounded-md border border-zinc-800 hover:border-white transition-all truncate"
+                    title={q}
                   >
-                    {q}
+                    💬 {q}
                   </button>
                 ))}
               </div>
             </div>
 
             {/* Chat Body */}
-            <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-black">
+            <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-black">
               {chatMessages.map((m, idx) => (
-                <div
+                <FormattedMessage
                   key={idx}
-                  className={`flex flex-col ${
-                    m.role === "user" ? "items-end" : "items-start"
-                  }`}
-                >
-                  <div
-                    className={`max-w-[85%] rounded-lg p-3 text-xs leading-relaxed ${
-                      m.role === "user"
-                        ? "bg-white text-black font-medium"
-                        : "bg-zinc-900 text-zinc-200 border border-zinc-800"
-                    }`}
-                  >
-                    {m.content}
-                    {m.evidence && m.evidence.length > 0 && (
-                      <div className="mt-2 pt-2 border-t border-zinc-800">
-                        <span className="text-[10px] text-zinc-400 font-mono block mb-1">
-                          CITED EVIDENCE NODES:
-                        </span>
-                        <div className="flex flex-wrap gap-1">
-                          {m.evidence.map((ev, i) => (
-                            <span
-                              key={i}
-                              className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-black text-zinc-200 border border-zinc-700"
-                            >
-                              {ev.split(".").pop()}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                  role={m.role as "user" | "assistant"}
+                  content={m.content}
+                  evidence={m.evidence}
+                  source={m.source}
+                  onSelectNode={(nodeId) => {
+                    const found = graphData.nodes.find(
+                      (n) =>
+                        n.id === nodeId ||
+                        n.name === nodeId ||
+                        (typeof n.id === "string" && n.id.endsWith(nodeId))
+                    );
+                    if (found) {
+                      setSelectedNode(found);
+                    }
+                  }}
+                />
               ))}
+
               {asking && (
-                <div className="flex items-center gap-2 text-xs text-zinc-400 p-2">
-                  <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
-                  <span>Traversing Architecture Graph...</span>
+                <div className="flex items-center gap-2.5 text-xs text-zinc-300 p-3.5 rounded-2xl bg-zinc-900 border border-zinc-800 animate-pulse">
+                  <Sparkles className="w-4 h-4 text-white animate-spin" />
+                  <span>Traversing architecture graph and analyzing with AI model...</span>
                 </div>
               )}
+              <div ref={messagesEndRef} />
             </div>
 
             {/* Input Footer */}
             <div className="p-3 border-t border-zinc-800 bg-zinc-950 flex gap-2">
               <input
+                ref={inputRef}
                 type="text"
-                placeholder="Ask about blast radius, tables, dependencies..."
+                placeholder="Ask anything about components, data flows, blast radius, cloud..."
                 value={chatQuestion}
                 onChange={(e) => setChatQuestion(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSendQuestion()}
-                className="flex-1 px-3 py-2 bg-black rounded-lg text-xs text-white border border-zinc-800 focus:outline-none focus:border-white placeholder:text-zinc-600"
+                className="flex-1 px-3 py-2 bg-black rounded-lg text-xs text-white border border-zinc-800 focus:outline-none focus:border-white placeholder:text-zinc-600 font-sans"
               />
               <button
                 onClick={() => handleSendQuestion()}
-                disabled={asking}
-                className="p-2 bg-white hover:bg-zinc-200 text-black rounded-lg disabled:opacity-50 font-bold"
+                disabled={asking || !chatQuestion.trim()}
+                className="px-3 py-2 bg-white hover:bg-zinc-200 text-black rounded-lg disabled:opacity-40 font-bold flex items-center gap-1.5 text-xs transition-all"
               >
-                <Send className="w-4 h-4" />
+                <span>Send</span>
+                <Send className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>

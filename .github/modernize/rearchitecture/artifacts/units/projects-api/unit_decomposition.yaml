@@ -1,0 +1,7 @@
+unit: projects-api
+commit: false
+candidate_splits:
+  - id: "backend/app/api/routes_projects.py:117-181"
+    drivers: [concern_split, nfr_split]
+    rationale: "Repository upload combines archive security validation, filesystem extraction, graph ingestion, persistence, and audit behavior."
+    source_slice: {file: "backend/app/api/routes_projects.py", lines: [117, 181]}

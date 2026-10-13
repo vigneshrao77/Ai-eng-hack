@@ -129,6 +129,27 @@ export default function GxpHeatmapPage() {
         </div>
       )}
 
+      {/* Friendly Guide Banner */}
+      <div className="p-4 rounded-xl bg-zinc-950 border border-zinc-800 text-xs text-zinc-300 space-y-2">
+        <div className="font-bold text-white flex items-center gap-2">
+          <span>💡 Quick Guide: What Risk Tiers Mean in Plain English</span>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-[11px] pt-1">
+          <div className="p-2.5 rounded-lg bg-black border border-zinc-800">
+            <span className="font-bold text-white block mb-1">🔴 HIGH Criticality (Protected)</span>
+            Directly writes to databases or regulated records. Keep core logic safe when modernizing.
+          </div>
+          <div className="p-2.5 rounded-lg bg-black border border-zinc-800">
+            <span className="font-bold text-white block mb-1">🟡 MEDIUM Criticality (Business Logic)</span>
+            Coordinates workflows and user requests. Decoupling this reduces blast radius.
+          </div>
+          <div className="p-2.5 rounded-lg bg-black border border-zinc-800">
+            <span className="font-bold text-white block mb-1">🟢 LOW Criticality (Quick Wins)</span>
+            Reporting and helper tasks. Can be migrated to cloud containers or serverless immediately!
+          </div>
+        </div>
+      </div>
+
       {/* Compliance Gap Detection Alert Table */}
       <div className="rounded-xl p-5 border border-zinc-800 bg-black space-y-3">
         <div className="flex items-center justify-between">
@@ -139,25 +160,37 @@ export default function GxpHeatmapPage() {
           <span className="text-xs text-zinc-500 font-mono">AUTOMATIC DETECTIONS</span>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-3">
           {gaps.map((gap: any, idx: number) => (
             <div
               key={idx}
-              className="p-3 rounded-lg bg-zinc-950 border border-zinc-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2"
+              className="p-3.5 rounded-lg bg-zinc-950 border border-zinc-800 flex flex-col gap-2.5"
             >
-              <div className="flex items-start gap-3">
-                <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-zinc-900 text-white border border-zinc-700">
-                  {gap.code || `GAP-0${idx + 1}`}
-                </span>
-                <div>
-                  <h4 className="text-xs font-semibold text-white">{gap.title || gap.name}</h4>
-                  <p className="text-[11px] text-zinc-400 mt-0.5">{gap.description || gap.detail}</p>
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-start gap-2.5">
+                  <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-zinc-900 text-white border border-zinc-700">
+                    {gap.code || `GAP-0${idx + 1}`}
+                  </span>
+                  <div>
+                    <h4 className="text-xs font-semibold text-white">{gap.title || gap.name}</h4>
+                    <p className="text-[11px] text-zinc-400 mt-0.5">{gap.description || gap.detail}</p>
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-2 self-end sm:self-center">
-                <span className="text-[10px] font-mono text-zinc-500">
-                  Impact: <span className="text-white font-bold">{gap.severity || "HIGH"}</span>
+                <span className="text-[10px] font-mono text-zinc-500 shrink-0">
+                  Severity: <span className="text-white font-bold">{gap.severity || "HIGH"}</span>
                 </span>
+              </div>
+
+              {/* Plain English Explanation Box */}
+              <div className="text-[11px] p-2.5 rounded-md bg-zinc-900/80 border border-zinc-800 space-y-1">
+                <div className="text-zinc-200">
+                  <span className="font-semibold text-white">💡 What this means: </span>
+                  {gap.plain_meaning || "This component contains configuration or patterns that need cloud remediation."}
+                </div>
+                <div className="text-zinc-400">
+                  <span className="font-semibold text-zinc-300">🛠️ Action needed: </span>
+                  {gap.remediation_tip || "Review this component and adapt for cloud best practices."}
+                </div>
               </div>
             </div>
           ))}
@@ -207,7 +240,7 @@ export default function GxpHeatmapPage() {
                 <tr key={item.node_id} className="hover:bg-zinc-900/40 transition-colors">
                   <td className="py-3 px-3">
                     <span className="font-semibold text-white block">
-                      {item.node_id.split(".").pop()}
+                      {typeof item.node_id === "string" ? item.node_id.split(".").pop() : (item.id || "Component")}
                     </span>
                     <span className="font-mono text-[10px] text-zinc-500">{item.node_id}</span>
                   </td>

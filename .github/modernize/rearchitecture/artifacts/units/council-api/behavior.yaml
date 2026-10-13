@@ -1,0 +1,23 @@
+unit: council-api
+side_effects:
+  - source_loc: "backend/app/api/routes_council.py:34-42"
+    effect: "runs council debate and persists generated decisions through the runner"
+    must_preserve: true
+branches:
+  - source_loc: "backend/app/api/routes_council.py:28"
+    condition: "request omitted"
+    behavior: "runs all clusters with offline mode false"
+    must_preserve: true
+error_paths:
+  - source_loc: "backend/app/api/routes_council.py:28"
+    trigger: "project ID is absent"
+    outcome: "council does not run"
+    contract: "HTTP 404 Project not found"
+    must_preserve: true
+concurrency:
+  model: sync
+  tx_boundary:
+    source_loc: "backend/app/api/routes_council.py:20"
+    scope: "council runner database operations"
+    isolation: "database default"
+    must_preserve: true

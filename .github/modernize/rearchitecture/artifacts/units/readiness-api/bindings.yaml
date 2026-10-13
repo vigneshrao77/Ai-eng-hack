@@ -1,0 +1,8 @@
+unit: readiness-api
+bindings:
+  - type: route-declaration
+    name: "GET /projects/{id}/readiness"
+    source_loc: "backend/app/api/routes_readiness.py:14"
+    target: "get_readiness"
+    must_appear_in_target: true
+runtime_config: []

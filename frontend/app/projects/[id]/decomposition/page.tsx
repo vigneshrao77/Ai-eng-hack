@@ -275,7 +275,7 @@ export default function DecompositionPage() {
                       key={comp}
                       className="font-mono text-[10px] px-2 py-0.5 rounded bg-black text-zinc-300 border border-zinc-800"
                     >
-                      {comp.split(".").pop()}
+                      {typeof comp === "string" ? comp.split(".").pop() : String(comp)}
                     </span>
                   ))}
                 </div>

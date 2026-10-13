@@ -1,0 +1,14 @@
+unit: evidence-api
+bindings:
+  - type: route-declaration
+    name: "POST/GET/download /projects/{id}/evidence"
+    source_loc: "backend/app/api/routes_evidence.py:16"
+    target: "evidence handlers"
+    must_appear_in_target: true
+runtime_config:
+  - key: "USE_S3/S3_ENDPOINT/S3_BUCKET"
+    source_loc: "backend/app/config.py:35"
+    source: env
+    default_value: "false/http://localhost:9000/modernrx-artifacts"
+    must_appear_in_target: true
+    notes: "Optional object storage configuration for generated artifacts."

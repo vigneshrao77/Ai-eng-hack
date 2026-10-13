@@ -162,8 +162,23 @@ async def upload_repository_zip(
     except zipfile.BadZipFile:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid ZIP archive.")
 
-    project.local_path = str(dest_dir)
+    # Detect if ZIP extracted into a single nested folder
+    subdirs = [p for p in dest_dir.iterdir() if p.is_dir() and not p.name.startswith(".")]
+    effective_path = subdirs[0] if (len(subdirs) == 1 and len(list(dest_dir.iterdir())) == 1) else dest_dir
+
+    project.local_path = str(effective_path)
     db.commit()
+
+    # Automatically build the living twin graph and analyze the repository immediately
+    from app.engines.twin.graph_builder import build_living_twin
+    twin_res = None
+    try:
+        twin_res = build_living_twin(project.id, str(effective_path))
+        project.status = "ANALYZED"
+        db.commit()
+        logger.info(f"Auto-built twin graph for uploaded project {id}: {twin_res.get('total_nodes')} nodes")
+    except Exception as e:
+        logger.error(f"Error auto-building twin graph for {id}: {e}")
 
     record_audit_event(
         db=db,
@@ -171,8 +186,14 @@ async def upload_repository_zip(
         action="REPOSITORY_UPLOADED",
         entity="Project",
         entity_id=project.id,
-        payload={"filename": file.filename, "size_bytes": len(content)},
+        payload={"filename": file.filename, "size_bytes": len(content), "nodes": twin_res.get("total_nodes") if twin_res else 0},
     )
 
-    logger.info(f"Repository uploaded and extracted safely for project {id} into {dest_dir}")
-    return {"status": "uploaded", "project_id": id, "path": str(dest_dir)}
+    logger.info(f"Repository uploaded and extracted safely for project {id} into {effective_path}")
+    return {
+        "status": "uploaded",
+        "project_id": id,
+        "path": str(effective_path),
+        "total_nodes": twin_res.get("total_nodes") if twin_res else 0,
+        "total_edges": twin_res.get("total_edges") if twin_res else 0,
+    }

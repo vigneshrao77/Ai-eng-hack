@@ -1,0 +1,23 @@
+unit: approvals-api
+side_effects:
+  - source_loc: "backend/app/api/routes_approvals.py:32-47"
+    effect: "updates Decision status, writes Approval, and records immutable audit event"
+    must_preserve: true
+branches:
+  - source_loc: "backend/app/api/routes_approvals.py:79"
+    condition: "rejection comment is missing or shorter than five characters"
+    behavior: "rejects request before mutation"
+    must_preserve: true
+error_paths:
+  - source_loc: "backend/app/api/routes_approvals.py:24"
+    trigger: "decision ID is absent"
+    outcome: "approval/rejection cannot be recorded"
+    contract: "HTTP 404 Decision not found"
+    must_preserve: true
+concurrency:
+  model: sync
+  tx_boundary:
+    source_loc: "backend/app/api/routes_approvals.py:32-37"
+    scope: "decision status and approval record commit"
+    isolation: "database default"
+    must_preserve: true

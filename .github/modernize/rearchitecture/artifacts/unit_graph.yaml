@@ -1,0 +1,262 @@
+units:
+  - name: health-api
+    trigger: api
+    trigger_detail: "GET /health and GET /ready"
+    source_anchors:
+      - path: backend/app/api/routes_health.py
+        line: 12
+    exported_signature:
+      - method: "GET /health -> health status JSON"
+        source_loc: "backend/app/api/routes_health.py:12"
+        stability: frozen
+      - method: "GET /ready -> readiness JSON"
+        source_loc: "backend/app/api/routes_health.py:32"
+        stability: frozen
+    dynamic_entrypoints: []
+    depends_on: []
+    shared_refs:
+      - module: settings
+        used_fields: [ENVIRONMENT, STANDALONE_LOCAL_MODE, OFFLINE_DEMO_MODE, USE_NEO4J]
+
+  - name: auth-api
+    trigger: api
+    trigger_detail: "POST /auth/login and GET /auth/me"
+    source_anchors:
+      - path: backend/app/api/routes_auth.py
+        line: 10
+    exported_signature:
+      - method: "POST /auth/login(LoginRequest) -> TokenResponse"
+        source_loc: "backend/app/api/routes_auth.py:34"
+        stability: frozen
+      - method: "GET /auth/me -> UserProfileResponse"
+        source_loc: "backend/app/api/routes_auth.py:59"
+        stability: frozen
+    dynamic_entrypoints: []
+    depends_on: []
+    shared_refs:
+      - module: db-session
+        used_fields: [get_db]
+
+  - name: projects-api
+    trigger: api
+    trigger_detail: "POST/GET /projects, GET /projects/{id}, POST /projects/{id}/upload"
+    source_anchors:
+      - path: backend/app/api/routes_projects.py
+        line: 15
+    exported_signature:
+      - method: "POST /projects(CreateProjectRequest) -> ProjectResponse"
+        source_loc: "backend/app/api/routes_projects.py:37"
+        stability: frozen
+      - method: "POST /projects/{id}/upload(MultipartFile) -> upload result"
+        source_loc: "backend/app/api/routes_projects.py:117"
+        stability: frozen
+    dynamic_entrypoints: []
+    depends_on: [ {unit: auth-api, via: "get_current_user/require_roles"} ]
+    shared_refs:
+      - module: db-session
+        used_fields: [get_db]
+      - module: audit-service
+        used_fields: [record_audit_event]
+
+  - name: jobs-api
+    trigger: api
+    trigger_detail: "GET /jobs/{job_id}"
+    source_anchors:
+      - path: backend/app/api/routes_jobs.py
+        line: 9
+    exported_signature:
+      - method: "GET /jobs/{job_id} -> job status JSON"
+        source_loc: "backend/app/api/routes_jobs.py:9"
+        stability: frozen
+    dynamic_entrypoints: []
+    depends_on: []
+    shared_refs:
+      - module: db-session
+        used_fields: [get_db]
+
+  - name: audit-api
+    trigger: api
+    trigger_detail: "GET /audit and GET /audit/verify"
+    source_anchors:
+      - path: backend/app/api/routes_audit.py
+        line: 10
+    exported_signature:
+      - method: "GET /audit -> AuditLogResponse[]"
+        source_loc: "backend/app/api/routes_audit.py:25"
+        stability: frozen
+      - method: "GET /audit/verify -> chain verification JSON"
+        source_loc: "backend/app/api/routes_audit.py:56"
+        stability: frozen
+    dynamic_entrypoints: []
+    depends_on: []
+    shared_refs:
+      - module: db-session
+        used_fields: [get_db]
+      - module: auth-service
+        used_fields: [get_current_user]
+
+  - name: twin-api
+    trigger: api
+    trigger_detail: "POST /projects/{id}/analyze; GET twin graph/C4; POST twin ask"
+    source_anchors:
+      - path: backend/app/api/routes_twin.py
+        line: 17
+    exported_signature:
+      - method: "POST /projects/{id}/analyze -> queued job"
+        source_loc: "backend/app/api/routes_twin.py:25"
+        stability: frozen
+      - method: "GET /projects/{id}/twin/graph -> nodes, edges, stats"
+        source_loc: "backend/app/api/routes_twin.py:63"
+        stability: frozen
+      - method: "POST /projects/{id}/twin/ask(AskTwinRequest) -> answer JSON"
+        source_loc: "backend/app/api/routes_twin.py:235"
+        stability: frozen
+    dynamic_entrypoints:
+      - target: "run_assessment closure"
+        mechanism: convention
+        source_loc: "backend/app/api/routes_twin.py:36"
+    depends_on: [ {unit: jobs-api, via: "Job status polling"} ]
+    shared_refs:
+      - module: db-session
+        used_fields: [get_db, SessionLocal]
+      - module: graph-store
+        used_fields: [get_graph_store]
+
+  - name: gxp-api
+    trigger: api
+    trigger_detail: "GET/PATCH /projects/{id}/gxp"
+    source_anchors:
+      - path: backend/app/api/routes_gxp.py
+        line: 13
+    exported_signature:
+      - method: "GET /projects/{id}/gxp -> scan result"
+        source_loc: "backend/app/api/routes_gxp.py:21"
+        stability: frozen
+      - method: "PATCH /projects/{id}/gxp/{node_id}(OverrideGxpRequest) -> override result"
+        source_loc: "backend/app/api/routes_gxp.py:28"
+        stability: frozen
+    dynamic_entrypoints: []
+    depends_on: []
+    shared_refs:
+      - module: graph-store
+        used_fields: [get_graph_store]
+      - module: audit-service
+        used_fields: [record_audit_event]
+
+  - name: readiness-api
+    trigger: api
+    trigger_detail: "GET /projects/{id}/readiness"
+    source_anchors:
+      - path: backend/app/api/routes_readiness.py
+        line: 11
+    exported_signature:
+      - method: "GET /projects/{id}/readiness -> readiness result"
+        source_loc: "backend/app/api/routes_readiness.py:14"
+        stability: frozen
+    dynamic_entrypoints: []
+    depends_on: []
+    shared_refs:
+      - module: graph-store
+        used_fields: [get_graph_store]
+
+  - name: decomposition-api
+    trigger: api
+    trigger_detail: "POST/GET /projects/{id}/decompose or decomposition"
+    source_anchors:
+      - path: backend/app/api/routes_decomp.py
+        line: 14
+    exported_signature:
+      - method: "POST /projects/{id}/decompose(DecomposeRequest) -> decomposition result"
+        source_loc: "backend/app/api/routes_decomp.py:23"
+        stability: frozen
+      - method: "GET /projects/{id}/decomposition -> decomposition result"
+        source_loc: "backend/app/api/routes_decomp.py:33"
+        stability: frozen
+    dynamic_entrypoints: []
+    depends_on: [ {unit: twin-api, via: "living twin graph"} ]
+    shared_refs:
+      - module: graph-store
+        used_fields: [get_graph_store]
+      - module: settings
+        used_fields: [DECOMP_GAMMA, weights_list]
+
+  - name: council-api
+    trigger: api
+    trigger_detail: "POST/GET /projects/{id}/council"
+    source_anchors:
+      - path: backend/app/api/routes_council.py
+        line: 13
+    exported_signature:
+      - method: "POST /projects/{id}/council/run(RunCouncilRequest) -> debates"
+        source_loc: "backend/app/api/routes_council.py:20"
+        stability: frozen
+      - method: "GET /projects/{id}/council/decisions -> decisions and approvals"
+        source_loc: "backend/app/api/routes_council.py:55"
+        stability: frozen
+    dynamic_entrypoints: []
+    depends_on: [ {unit: decomposition-api, via: "cluster IDs"} ]
+    shared_refs:
+      - module: db-session
+        used_fields: [get_db]
+      - module: auth-service
+        used_fields: [get_current_user]
+
+  - name: approvals-api
+    trigger: api
+    trigger_detail: "POST /decisions/{id}/approve or reject"
+    source_anchors:
+      - path: backend/app/api/routes_approvals.py
+        line: 11
+    exported_signature:
+      - method: "POST /decisions/{id}/approve -> approval result"
+        source_loc: "backend/app/api/routes_approvals.py:18"
+        stability: frozen
+      - method: "POST /decisions/{id}/reject -> rejection result"
+        source_loc: "backend/app/api/routes_approvals.py:67"
+        stability: frozen
+    dynamic_entrypoints: []
+    depends_on: [ {unit: council-api, via: "Decision records"} ]
+    shared_refs:
+      - module: audit-service
+        used_fields: [record_audit_event]
+
+  - name: roadmap-api
+    trigger: api
+    trigger_detail: "POST/GET/what-if /projects/{id}/roadmap"
+    source_anchors:
+      - path: backend/app/api/routes_roadmap.py
+        line: 11
+    exported_signature:
+      - method: "POST /projects/{id}/roadmap(RoadmapGenerateRequest) -> roadmap"
+        source_loc: "backend/app/api/routes_roadmap.py:31"
+        stability: frozen
+      - method: "POST /projects/{id}/roadmap/whatif(WhatIfRequest) -> simulation"
+        source_loc: "backend/app/api/routes_roadmap.py:99"
+        stability: frozen
+    dynamic_entrypoints: []
+    depends_on: [ {unit: council-api, via: "approved decisions/cluster data"} ]
+    shared_refs:
+      - module: db-session
+        used_fields: [get_db]
+
+  - name: evidence-api
+    trigger: api
+    trigger_detail: "POST/GET/download /projects/{id}/evidence"
+    source_anchors:
+      - path: backend/app/api/routes_evidence.py
+        line: 11
+    exported_signature:
+      - method: "POST /projects/{id}/evidence/{wave} -> evidence metadata"
+        source_loc: "backend/app/api/routes_evidence.py:16"
+        stability: frozen
+      - method: "GET /projects/{id}/evidence/{wave}/download -> application/pdf"
+        source_loc: "backend/app/api/routes_evidence.py:84"
+        stability: frozen
+    dynamic_entrypoints: []
+    depends_on: []
+    shared_refs:
+      - module: db-session
+        used_fields: [get_db]
+      - module: auth-service
+        used_fields: [get_current_user]
+

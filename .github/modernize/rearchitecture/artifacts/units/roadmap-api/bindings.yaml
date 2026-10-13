@@ -1,0 +1,14 @@
+unit: roadmap-api
+bindings:
+  - type: route-declaration
+    name: "POST/GET /projects/{id}/roadmap and POST whatif"
+    source_loc: "backend/app/api/routes_roadmap.py:31"
+    target: "roadmap handlers"
+    must_appear_in_target: true
+runtime_config:
+  - key: "MONTECARLO_RUNS"
+    source_loc: "backend/app/config.py:54"
+    source: env
+    default_value: "10000"
+    must_appear_in_target: true
+    notes: "Simulation run count."

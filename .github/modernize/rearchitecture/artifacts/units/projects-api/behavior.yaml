@@ -1,0 +1,30 @@
+unit: projects-api
+side_effects:
+  - source_loc: "backend/app/api/routes_projects.py:45"
+    effect: "persists a new project and immutable PROJECT_CREATED audit event"
+    must_preserve: true
+  - source_loc: "backend/app/api/routes_projects.py:169"
+    effect: "extracts uploaded repository and builds the living twin graph"
+    must_preserve: true
+branches:
+  - source_loc: "backend/app/api/routes_projects.py:127-155"
+    condition: "ZIP exceeds size/file-count/extracted-size/path safety limits"
+    behavior: "rejects archive before extraction"
+    must_preserve: true
+  - source_loc: "backend/app/api/routes_projects.py:158"
+    condition: "archive is not a valid ZIP"
+    behavior: "returns invalid archive error"
+    must_preserve: true
+error_paths:
+  - source_loc: "backend/app/api/routes_projects.py:101"
+    trigger: "project ID is absent"
+    outcome: "project lookup fails"
+    contract: "HTTP 404 Project not found"
+    must_preserve: true
+concurrency:
+  model: async
+  tx_boundary:
+    source_loc: "backend/app/api/routes_projects.py:37"
+    scope: "project creation/audit commit and upload metadata commits"
+    isolation: "database default"
+    must_preserve: true

@@ -1,6 +1,7 @@
 import hashlib
 import json
 import logging
+import httpx
 from typing import Any, Dict, List, Optional, Set, Tuple
 
 from app.config import settings
@@ -339,6 +340,50 @@ class CouncilModeratorAgent:
 
         return rebuttals
 
+    def _call_llm(
+        self,
+        cluster_info: Dict[str, Any],
+        opinions: List[SpecialistOpinion],
+        rebuttals: List[Dict[str, str]],
+    ) -> Optional[Dict[str, Any]]:
+        from app.core.llm import call_llm
+
+        system_instruction = (
+            "You are the Moderator of an AI Architecture Council reviewing a system modernization plan. "
+            "Synthesize specialist opinions into a clear, user-friendly, plain-English decision that both engineering and business stakeholders can easily understand. "
+            "Write the rationale in 2-3 short, clean paragraphs: "
+            "1. Plain-English Summary: What this part of the system does and why it matters. "
+            "2. Recommendation: The simplest, safest way to move it to the cloud. "
+            "3. Next Steps: Concrete actions for the engineering team. "
+            "Avoid cryptic abbreviations and explain technical concepts in simple words. "
+            "Return only a valid JSON object with keys: "
+            "rationale (str), risks (list of 2-3 simple clear risk strings), confidence (float between 0.0 and 1.0)."
+        )
+        prompt_content = {
+            "cluster": cluster_info,
+            "specialist_opinions": [op.model_dump() for op in opinions],
+            "rebuttals": rebuttals,
+        }
+
+        try:
+            res = call_llm(
+                prompt=json.dumps(prompt_content),
+                system_prompt=system_instruction,
+                temperature=settings.LLM_TEMPERATURE,
+                max_tokens=settings.LLM_MAX_TOKENS,
+                json_mode=True,
+                timeout=45.0,
+            )
+            if res.get("success") and res.get("text"):
+                txt = res["text"].strip()
+                if txt.startswith("```"):
+                    txt = txt.strip("`").removeprefix("json").strip()
+                return json.loads(txt)
+        except Exception as e:
+            logger.warning("Council LLM call failed (%s); falling back to deterministic synthesis.", e)
+            return None
+        return None
+
     def synthesize(
         self,
         cluster_info: Dict[str, Any],
@@ -362,21 +407,21 @@ class CouncilModeratorAgent:
             target_services = ["AWS ECS Fargate", "Amazon RDS PostgreSQL", "AWS Secrets Manager", "AWS KMS"]
             confidence = 0.88
             rationale = (
-                f"AI Council Consensus for HIGH-tier cluster ({cluster_id}): Adopt Replatforming via Strangler Fig. "
+                f"AI Council Consensus for HIGH-tier cluster ({cluster_id} - {cluster_info.get('name', 'Core')}): Adopt Replatforming via Strangler Fig. "
                 f"Retaining core business logic within containerized micro-services preserves established "
-                f"Part 11 verification baselines while eliminating legacy host OS and local filesystem risks. "
+                f"verification baselines while eliminating legacy host OS and local filesystem risks. "
                 f"QA concerns are addressed via comprehensive characterization test harnesses."
             )
             risks = [
                 "Dual-write synchronization during Strangler migration wave",
-                "Formal CSA qualification and independent QA review mandatory prior to production release",
+                "Formal qualification and independent QA review mandatory prior to production release",
             ]
             if qa_op and qa_op.strategy == "Retain":
                 dissent.append(
                     DissentItem(
                         agent="Validation & QA Lead",
                         position="Preferred Retain",
-                        reason="Argued that any change to electronic signature or batch release write paths incurs re-validation expense.",
+                        reason=f"Argued that modifying core business logic in {cluster_info.get('name', cluster_id)} incurs substantial re-testing and verification expense.",
                     )
                 )
         elif gxp_tier == "MEDIUM":
@@ -400,6 +445,18 @@ class CouncilModeratorAgent:
             )
             risks = ["Minor configuration drift across cloud environments"]
 
+        # If live LLM call is enabled (local model or Gemini), try enhancing synthesis
+        if not offline_simulated:
+            llm_data = self._call_llm(cluster_info, opinions, rebuttals)
+            if llm_data:
+                if "rationale" in llm_data and isinstance(llm_data["rationale"], str):
+                    rationale = llm_data["rationale"]
+                if "risks" in llm_data and isinstance(llm_data["risks"], list):
+                    risks = [str(r) for r in llm_data["risks"]]
+                if "confidence" in llm_data and isinstance(llm_data["confidence"], (int, float)):
+                    confidence = float(min(1.0, max(0.0, llm_data["confidence"])))
+                offline_simulated = False
+
         all_evidence = list(dict.fromkeys([
             nid for op in opinions for nid in op.evidence_node_ids if nid in valid_node_ids
         ]))
@@ -419,7 +476,7 @@ class CouncilModeratorAgent:
             dissent=dissent,
             evidence_node_ids=all_evidence,
             effort_weeks=effort,
-            model_id=settings.LLM_MODEL,
+            model_id=settings.LOCAL_MODEL_NAME if settings.LLM_PROVIDER in ("ollama", "local") else settings.LLM_MODEL,
             offline_simulated=offline_simulated,
             status="PROPOSED",
         )

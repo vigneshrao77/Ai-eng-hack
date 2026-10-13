@@ -1,0 +1,30 @@
+unit: twin-api
+side_effects:
+  - source_loc: "backend/app/api/routes_twin.py:25-60"
+    effect: "creates a Job and submits background twin ingestion with progress updates"
+    must_preserve: true
+  - source_loc: "backend/app/api/routes_twin.py:63-130"
+    effect: "transforms graph nodes and edges into Cytoscape-compatible output"
+    must_preserve: true
+branches:
+  - source_loc: "backend/app/api/routes_twin.py:70-87"
+    condition: "graph is empty and a local repository path exists"
+    behavior: "attempts on-demand twin construction"
+    must_preserve: true
+  - source_loc: "backend/app/api/routes_twin.py:263-278"
+    condition: "query words match graph nodes"
+    behavior: "answers using matched architecture context; otherwise falls back to first class nodes"
+    must_preserve: true
+error_paths:
+  - source_loc: "backend/app/api/routes_twin.py:27"
+    trigger: "project ID is absent"
+    outcome: "analysis is not queued"
+    contract: "HTTP 404 Project not found"
+    must_preserve: true
+concurrency:
+  model: thread-pool
+  tx_boundary:
+    source_loc: "backend/app/api/routes_twin.py:36-57"
+    scope: "background graph build uses a separate database session for project status"
+    isolation: "database default"
+    must_preserve: true

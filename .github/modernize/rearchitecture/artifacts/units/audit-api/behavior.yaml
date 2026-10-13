@@ -1,0 +1,20 @@
+unit: audit-api
+side_effects: []
+branches:
+  - source_loc: "backend/app/api/routes_audit.py:35-38"
+    condition: "entity/action filters are supplied"
+    behavior: "filters descending audit query before limiting"
+    must_preserve: true
+error_paths:
+  - source_loc: "backend/app/api/routes_audit.py:56"
+    trigger: "audit chain contains invalid hash linkage"
+    outcome: "verification result reports integrity failure"
+    contract: "verification JSON"
+    must_preserve: true
+concurrency:
+  model: sync
+  tx_boundary:
+    source_loc: "backend/app/api/routes_audit.py:25"
+    scope: "read audit rows or verify full chain"
+    isolation: "database default"
+    must_preserve: true

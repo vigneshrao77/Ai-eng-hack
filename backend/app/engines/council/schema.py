@@ -51,7 +51,7 @@ class CouncilDecision(BaseModel):
     dissent: List[DissentItem] = Field(default_factory=list)
     evidence_node_ids: List[str]
     effort_weeks: Tuple[float, float, float]  # (optimistic, likely, pessimistic)
-    model_id: str = "claude-3-5-sonnet-20241022"
+    model_id: str = "gemini-2.5-flash"
     offline_simulated: bool = False
     status: str = "PROPOSED"  # PROPOSED, APPROVED, REJECTED
     decision_id: Optional[str] = None

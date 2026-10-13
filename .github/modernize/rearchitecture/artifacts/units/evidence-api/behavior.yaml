@@ -1,0 +1,26 @@
+unit: evidence-api
+side_effects:
+  - source_loc: "backend/app/api/routes_evidence.py:31-39"
+    effect: "generates and persists a wave evidence PDF and metadata"
+    must_preserve: true
+  - source_loc: "backend/app/api/routes_evidence.py:84-103"
+    effect: "streams the stored PDF with application/pdf media type and original filename"
+    must_preserve: true
+branches:
+  - source_loc: "backend/app/api/routes_evidence.py:28"
+    condition: "wave cannot be parsed as an integer"
+    behavior: "defaults to wave 1"
+    must_preserve: true
+error_paths:
+  - source_loc: "backend/app/api/routes_evidence.py:99"
+    trigger: "metadata or file is absent"
+    outcome: "download rejected"
+    contract: "HTTP 404 Evidence Pack PDF not found"
+    must_preserve: true
+concurrency:
+  model: sync
+  tx_boundary:
+    source_loc: "backend/app/api/routes_evidence.py:16"
+    scope: "evidence generation metadata persistence"
+    isolation: "database default"
+    must_preserve: true

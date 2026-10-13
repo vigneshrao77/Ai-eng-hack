@@ -1,0 +1,19 @@
+unit: health-api
+bindings:
+  - type: route-declaration
+    name: "GET /health"
+    source_loc: "backend/app/api/routes_health.py:12"
+    target: "get_health"
+    must_appear_in_target: true
+  - type: route-declaration
+    name: "GET /ready"
+    source_loc: "backend/app/api/routes_health.py:32"
+    target: "get_ready"
+    must_appear_in_target: true
+runtime_config:
+  - key: "ENVIRONMENT, STANDALONE_LOCAL_MODE, OFFLINE_DEMO_MODE, USE_NEO4J"
+    source_loc: "backend/app/api/routes_health.py:8"
+    source: env
+    default_value: "development/true/true/false"
+    must_appear_in_target: true
+    notes: "Reported as operational health metadata."

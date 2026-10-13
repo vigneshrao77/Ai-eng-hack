@@ -1,0 +1,7 @@
+unit: auth-api
+commit: false
+candidate_splits:
+  - id: "backend/app/api/routes_auth.py:34-74"
+    drivers: [concern_split]
+    rationale: "Login token issuance and authenticated profile retrieval have separate security and response contracts."
+    source_slice: {file: "backend/app/api/routes_auth.py", lines: [34, 74]}

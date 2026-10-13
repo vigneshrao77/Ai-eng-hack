@@ -1,0 +1,82 @@
+contracts:
+  - name: project-rest-api
+    unit: projects-api
+    type: rest
+    stability: frozen
+    source_loc: "backend/app/api/routes_projects.py:37"
+    contract:
+      method: "POST/GET"
+      path: "/projects and /projects/{id}"
+      request: "CreateProjectRequest{name, repo_url?, target_cloud AWS|Azure|GCP}"
+      response: "ProjectResponse{id,name,repo_url,target_cloud,status,created_at}"
+      error: "404 missing project; 400 upload size/path/archive errors"
+      auth: "JWT; create/upload require architect or admin"
+    target_contract:
+      method: "Preserve the JSON REST shapes and status semantics at the same paths."
+      notes: "Upload is multipart and must retain ZIP safety limits."
+    semantic_divergence: []
+  - name: twin-graph-contract
+    unit: twin-api
+    type: rest
+    stability: frozen
+    source_loc: "backend/app/api/routes_twin.py:63"
+    contract:
+      method: "GET"
+      path: "/projects/{id}/twin/graph"
+      request: "project id path parameter"
+      response: "nodes[], edges[], elements{nodes,edges}, stats{total_nodes,total_edges}"
+      error: "empty graph may trigger on-demand build; build failure is logged"
+      auth: "No explicit dependency on graph GET; project data may be local/demo."
+    target_contract:
+      method: "Return Cytoscape-compatible node/edge arrays with graph statistics."
+      notes: "Node field names fanIn/fanOut/gxp_tier/readiness/cluster_id are consumed by the UI."
+    semantic_divergence: []
+  - name: audit-chain-contract
+    unit: audit-api
+    type: rest
+    stability: frozen
+    source_loc: "backend/app/api/routes_audit.py:25"
+    contract:
+      method: "GET"
+      path: "/audit and /audit/verify"
+      request: "limit 1..200, optional entity/action filters"
+      response: "AuditLogResponse[] or chain verification JSON"
+      error: "JWT failure for protected audit endpoints"
+      auth: "JWT"
+    target_contract:
+      method: "Preserve append-only event fields and verification result semantics."
+      notes: "prev_hash and hash are externally visible evidence fields."
+    semantic_divergence: []
+  - name: evidence-download-contract
+    unit: evidence-api
+    type: file
+    stability: frozen
+    source_loc: "backend/app/api/routes_evidence.py:84"
+    contract:
+      method: "GET"
+      path: "/projects/{id}/evidence/{wave}/download"
+      request: "project id and wave path parameters"
+      response: "application/pdf with stored filename"
+      error: "404 when metadata/file is absent"
+      auth: "JWT"
+    target_contract:
+      method: "Return the generated PDF as application/pdf using the persisted filename."
+      notes: "Wave normalization supports numeric, waveN, and Wave_N forms."
+    semantic_divergence: []
+  - name: frontend-backend-http
+    unit: global
+    type: rest
+    stability: frozen
+    source_loc: "frontend/lib/api.ts:3"
+    contract:
+      method: "HTTP JSON and multipart"
+      path: "FastAPI routes under /auth, /projects, /jobs, /audit, /decisions"
+      request: "Axios requests with optional Bearer token"
+      response: "Typed project/health data and feature-specific JSON"
+      error: "Axios error propagation to page-level UI"
+      auth: "Authorization Bearer from browser localStorage"
+    target_contract:
+      method: "Keep route paths, payload keys, and auth header behavior compatible with the client."
+      notes: "The frontend is a direct consumer of the API contract."
+    semantic_divergence: []
+

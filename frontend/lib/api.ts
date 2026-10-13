@@ -9,6 +9,16 @@ export const api = axios.create({
   },
 });
 
+api.interceptors.request.use((config) => {
+  if (typeof window !== "undefined") {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  }
+  return config;
+});
+
 export interface ProjectSummary {
   id: string;
   name: string;
@@ -48,6 +58,17 @@ export async function createProject(payload: {
   target_cloud: string;
 }): Promise<ProjectSummary> {
   const { data } = await api.post("/projects", payload);
+  return data;
+}
+
+export async function uploadProjectZip(id: string, file: File): Promise<any> {
+  const formData = new FormData();
+  formData.append("file", file);
+  const { data } = await api.post(`/projects/${id}/upload`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
   return data;
 }
 

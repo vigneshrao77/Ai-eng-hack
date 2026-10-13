@@ -38,6 +38,37 @@ const AGENT_COLORS: Record<string, string> = {
   "Moderator (Chair)": "text-white bg-zinc-900 border-zinc-700",
 };
 
+const STRATEGY_PLAIN_ENGLISH: Record<string, { label: string; desc: string }> = {
+  Replatform: {
+    label: "Wrap & Modernize in Cloud Containers",
+    desc: "Keep core business calculations safe while packaging into managed containers. Minimal regulatory re-testing required.",
+  },
+  Rehost: {
+    label: "Lift & Shift (Quick Win)",
+    desc: "Migrate directly to cloud infrastructure with zero code alterations to start saving on hardware costs immediately.",
+  },
+  Refactor: {
+    label: "Break Down into Independent Microservices",
+    desc: "Redesign into modular cloud services communicating via APIs for maximum team agility and auto-scaling.",
+  },
+  Retire: {
+    label: "Safely Delete Unused Code",
+    desc: "Decommission dead components to save maintenance costs and reduce security exposure.",
+  },
+  Retain: {
+    label: "Keep As-Is On-Premises",
+    desc: "Leave unchanged for now because cloud migration benefits do not outweigh re-validation costs yet.",
+  },
+};
+
+const PATTERN_PLAIN_ENGLISH: Record<string, string> = {
+  StranglerFig: "Strangler Fig (Gradual step-by-step migration)",
+  Containerized: "Docker Containers (Runs identically anywhere)",
+  ManagedDB: "Managed Cloud Database (Automated backups & scaling)",
+  AsyncEvents: "Message Queues (Prevents traffic bottlenecks)",
+  Serverless: "Serverless Functions (Executes on-demand with zero idle cost)",
+};
+
 export default function CouncilPage() {
   const params = useParams();
   const id = (params?.id as string) || "acmelims-demo";
@@ -282,10 +313,16 @@ export default function CouncilPage() {
           {currentDecision ? (
             <div className="space-y-4 text-xs">
               <div>
-                <span className="text-[10px] text-zinc-400 uppercase font-mono">Recommended 7R Strategy</span>
-                <div className="text-2xl font-black text-white mt-0.5 font-mono">
-                  {currentDecision.strategy}
+                <span className="text-[10px] text-zinc-400 uppercase font-mono">Recommended Cloud Strategy</span>
+                <div className="flex flex-wrap items-center gap-2 mt-1">
+                  <span className="text-2xl font-black text-white font-mono">{currentDecision.strategy}</span>
+                  <span className="text-[11px] px-2.5 py-1 rounded bg-zinc-900 border border-zinc-700 text-zinc-200 font-medium">
+                    {STRATEGY_PLAIN_ENGLISH[currentDecision.strategy]?.label || "Modernization Approach"}
+                  </span>
                 </div>
+                <p className="text-[11px] text-zinc-400 mt-1.5 leading-relaxed">
+                  {STRATEGY_PLAIN_ENGLISH[currentDecision.strategy]?.desc || ""}
+                </p>
               </div>
 
               <div className="grid grid-cols-2 gap-2 font-mono">
@@ -304,16 +341,19 @@ export default function CouncilPage() {
               </div>
 
               <div>
-                <span className="text-[10px] text-zinc-400 uppercase font-mono">Target Patterns</span>
-                <div className="flex flex-wrap gap-1 mt-1">
+                <span className="text-[10px] text-zinc-400 uppercase font-mono">Architecture Patterns Explained</span>
+                <div className="flex flex-col gap-1.5 mt-1.5">
                   {(currentDecision.target_pattern || ["StranglerFig", "Containerized"]).map(
                     (p: string) => (
-                      <span
+                      <div
                         key={p}
-                        className="px-2 py-0.5 rounded bg-zinc-900 text-zinc-200 border border-zinc-700 text-[10px] font-mono font-semibold"
+                        className="px-2.5 py-1 rounded bg-zinc-900 text-zinc-300 border border-zinc-800 text-[11px] flex items-center justify-between"
                       >
-                        {p}
-                      </span>
+                        <span className="font-mono font-semibold text-white">{p}</span>
+                        <span className="text-zinc-400 text-[10px]">
+                          {PATTERN_PLAIN_ENGLISH[p] || "Standard Cloud Pattern"}
+                        </span>
+                      </div>
                     )
                   )}
                 </div>
@@ -327,10 +367,10 @@ export default function CouncilPage() {
               </div>
 
               <div>
-                <span className="text-[10px] text-zinc-400 uppercase font-mono">Consensus Rationale</span>
-                <p className="text-[11px] text-zinc-300 mt-1 bg-zinc-950 p-2.5 rounded-lg border border-zinc-800 leading-relaxed">
+                <span className="text-[10px] text-zinc-400 uppercase font-mono">Executive Summary &amp; Consensus</span>
+                <div className="text-[11px] text-zinc-300 mt-1 bg-zinc-950 p-3 rounded-lg border border-zinc-800 leading-relaxed whitespace-pre-line">
                   {currentDecision.rationale}
-                </p>
+                </div>
               </div>
 
               {/* Recorded Dissent */}

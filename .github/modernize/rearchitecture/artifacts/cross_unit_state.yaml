@@ -1,0 +1,44 @@
+flows:
+  - name: browser-jwt-token
+    medium: cookie
+    key: "localStorage.token -> Authorization Bearer"
+    writer:
+      unit: auth-api
+      source_loc: "backend/app/api/routes_auth.py:34"
+    reader:
+      unit: projects-api
+      source_loc: "frontend/lib/api.ts:12"
+    pairing: external-writer
+    must_preserve: true
+    must_confirm: runtime
+    verification_hint: "Log in through the UI, reload, and call an authenticated project endpoint."
+    notes: "The frontend API interceptor reads localStorage and attaches the token to all requests."
+  - name: project-graph
+    medium: database
+    key: "project_id"
+    writer:
+      unit: twin-api
+      source_loc: "backend/app/api/routes_twin.py:36"
+    reader:
+      unit: readiness-api
+      source_loc: "backend/app/api/routes_readiness.py:14"
+    pairing: matched
+    must_preserve: true
+    must_confirm: null
+    verification_hint: "Analyze a project, then request readiness and confirm non-empty graph-derived output."
+    notes: "Twin graph is the shared input for readiness and decomposition."
+  - name: decision-approval-status
+    medium: database
+    key: "Decision.status"
+    writer:
+      unit: approvals-api
+      source_loc: "backend/app/api/routes_approvals.py:32"
+    reader:
+      unit: council-api
+      source_loc: "backend/app/api/routes_council.py:83"
+    pairing: matched
+    must_preserve: true
+    must_confirm: null
+    verification_hint: "Approve/reject a decision and reload council decisions."
+    notes: "Human approval status is persisted and returned with council decisions."
+

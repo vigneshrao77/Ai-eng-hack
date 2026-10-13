@@ -14,7 +14,7 @@ router = APIRouter(prefix="/projects", tags=["Council"])
 
 class RunCouncilRequest(BaseModel):
     cluster_ids: Optional[List[str]] = None
-    force_offline: Optional[bool] = True
+    force_offline: Optional[bool] = False
 
 
 @router.post("/{id}/council/run")
@@ -32,7 +32,9 @@ def trigger_council_run(
         raise HTTPException(status_code=404, detail="Project not found")
 
     cluster_ids = request.cluster_ids if request else None
-    force_offline = request.force_offline if request and request.force_offline is not None else True
+    from app.config import get_settings
+    settings = get_settings()
+    force_offline = request.force_offline if (request and request.force_offline is not None) else False
 
     debates = run_council_for_clusters(
         project_id=id,

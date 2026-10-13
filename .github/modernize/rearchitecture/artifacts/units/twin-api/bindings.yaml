@@ -1,0 +1,19 @@
+unit: twin-api
+bindings:
+  - type: route-declaration
+    name: "POST /projects/{id}/analyze"
+    source_loc: "backend/app/api/routes_twin.py:25"
+    target: "trigger_analysis"
+    must_appear_in_target: true
+  - type: route-declaration
+    name: "GET /projects/{id}/twin/graph and /twin/c4; POST /twin/ask"
+    source_loc: "backend/app/api/routes_twin.py:63"
+    target: "twin handlers"
+    must_appear_in_target: true
+runtime_config:
+  - key: "USE_NEO4J"
+    source_loc: "backend/app/config.py:29"
+    source: env
+    default_value: "false"
+    must_appear_in_target: true
+    notes: "Selects graph-store backend."

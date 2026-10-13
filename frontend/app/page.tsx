@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Activity,
   Layers,
@@ -14,9 +15,19 @@ import {
   Clock,
   Database,
   Lock,
+  UploadCloud,
+  FileArchive,
+  Check,
+  Loader2,
+  X,
+  AlertCircle,
 } from "lucide-react";
+import { fetchProjects, createProject, uploadProjectZip, analyzeProject } from "@/lib/api";
 
 export default function HomePage() {
+  const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [projects, setProjects] = useState<any[]>([
     {
       id: "acmelims-demo",
@@ -34,6 +45,68 @@ export default function HomePage() {
   ]);
 
   const [assessmentModalOpen, setAssessmentModalOpen] = useState(false);
+  const [appName, setAppName] = useState("EnterpriseLIMS-v2");
+  const [targetCloud, setTargetCloud] = useState("AWS");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [useBuiltin, setUseBuiltin] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState("");
+  const [uploadError, setUploadError] = useState("");
+
+  useEffect(() => {
+    async function loadProjects() {
+      try {
+        const data = await fetchProjects();
+        if (data && data.length > 0) {
+          setProjects(
+            data.map((p: any) => ({
+              ...p,
+              loc: p.loc || "8,450",
+              components: p.components || "24",
+              gxp_high_ratio: p.gxp_high_ratio || "42%",
+              readiness_score: p.readiness_score || "64/100",
+              reval_scope_reduction: p.reval_scope_reduction || "-44%",
+            }))
+          );
+        }
+      } catch (err) {
+        console.error("Failed to load projects:", err);
+      }
+    }
+    loadProjects();
+  }, []);
+
+  async function handleStartAssessment() {
+    if (uploading) return;
+    setUploadError("");
+
+    if (selectedFile) {
+      try {
+        setUploading(true);
+        setUploadStatus("Creating project assessment...");
+        const newProj = await createProject({
+          name: appName || selectedFile.name.replace(/\.zip$/i, ""),
+          target_cloud: targetCloud,
+        });
+
+        setUploadStatus("Uploading repository ZIP archive...");
+        await uploadProjectZip(newProj.id, selectedFile);
+
+        setUploadStatus("Extracting AST, SQL schemas & Living Twin graph...");
+        await analyzeProject(newProj.id);
+
+        router.push(`/projects/${newProj.id}/overview`);
+      } catch (err: any) {
+        console.error("Assessment creation failed:", err);
+        setUploadError(err?.response?.data?.detail || "Failed to create assessment from ZIP. Please verify the archive.");
+        setUploading(false);
+      }
+    } else {
+      // Built-in demo monolith
+      router.push("/projects/acmelims-demo/overview");
+    }
+  }
 
   return (
     <div className="space-y-8 animate-fadeIn">
@@ -250,7 +323,8 @@ export default function HomePage() {
                 <input
                   id="app-name-input"
                   type="text"
-                  defaultValue="EnterpriseLIMS-v2"
+                  value={appName}
+                  onChange={(e) => setAppName(e.target.value)}
                   className="mt-1 w-full px-3 py-2 rounded bg-black border border-zinc-800 text-sm text-white focus:outline-none focus:border-white focus-visible:ring-2 focus-visible:ring-white font-mono"
                 />
               </div>
@@ -260,37 +334,190 @@ export default function HomePage() {
                 </label>
                 <select
                   id="target-cloud-select"
+                  value={targetCloud}
+                  onChange={(e) => setTargetCloud(e.target.value)}
                   className="mt-1 w-full px-3 py-2 rounded bg-black border border-zinc-800 text-sm text-white focus:outline-none focus:border-white focus-visible:ring-2 focus-visible:ring-white font-mono"
                 >
-                  <option>AWS (Amazon Web Services)</option>
-                  <option>Azure (Microsoft Azure)</option>
-                  <option>GCP (Google Cloud Platform)</option>
+                  <option value="AWS">AWS (Amazon Web Services)</option>
+                  <option value="Azure">Azure (Microsoft Azure)</option>
+                  <option value="GCP">GCP (Google Cloud Platform)</option>
                 </select>
               </div>
-              <div className="p-4 rounded border border-dashed border-zinc-800 bg-black text-center">
-                <p className="text-xs text-zinc-400">Select or drop AcmeLIMS repository ZIP</p>
-                <button
-                  type="button"
-                  className="mt-2 px-3 py-1.5 rounded bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-xs text-zinc-200 focus-visible:ring-2 focus-visible:ring-white"
+
+              {/* Interactive File Dropzone */}
+              <div>
+                <label className="text-xs font-mono text-zinc-400 block mb-1">
+                  Source Code Archive
+                </label>
+                <div
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setIsDragging(true);
+                  }}
+                  onDragLeave={() => setIsDragging(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setIsDragging(false);
+                    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                      const f = e.dataTransfer.files[0];
+                      if (f.name.toLowerCase().endsWith(".zip")) {
+                        setSelectedFile(f);
+                        setUseBuiltin(false);
+                        setAppName(f.name.replace(/\.zip$/i, ""));
+                        setUploadError("");
+                      } else {
+                        setUploadError("Please provide a valid .zip source archive.");
+                      }
+                    }
+                  }}
+                  onClick={() => fileInputRef.current?.click()}
+                  className={`p-4 rounded-lg border-2 border-dashed transition-all cursor-pointer text-center ${
+                    isDragging
+                      ? "border-white bg-zinc-900"
+                      : selectedFile
+                      ? "border-white bg-zinc-900/60"
+                      : useBuiltin
+                      ? "border-zinc-500 bg-zinc-900/40"
+                      : "border-zinc-800 bg-black hover:border-zinc-600 hover:bg-zinc-950"
+                  }`}
                 >
-                  Use Built-in AcmeLIMS Monolith
-                </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".zip,application/zip"
+                    className="hidden"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        const f = e.target.files[0];
+                        setSelectedFile(f);
+                        setUseBuiltin(false);
+                        setAppName(f.name.replace(/\.zip$/i, ""));
+                        setUploadError("");
+                      }
+                    }}
+                  />
+
+                  {selectedFile ? (
+                    <div className="flex items-center justify-between gap-3 text-left">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded bg-white text-black flex items-center justify-center font-bold">
+                          <FileArchive className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <div className="text-xs font-semibold text-white truncate max-w-[260px]">
+                            {selectedFile.name}
+                          </div>
+                          <div className="text-[10px] text-zinc-400 font-mono">
+                            {(selectedFile.size / (1024 * 1024)).toFixed(2)} MB &bull; ZIP Archive Selected
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedFile(null);
+                        }}
+                        className="p-1 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : useBuiltin ? (
+                    <div className="flex items-center justify-between gap-3 text-left">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded bg-white text-black flex items-center justify-center font-bold">
+                          <Check className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <div className="text-xs font-semibold text-white">
+                            Built-in AcmeLIMS Monolith Selected
+                          </div>
+                          <div className="text-[10px] text-zinc-400 font-mono">
+                            8,450 LOC Java + Spring Boot + Oracle schema
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setUseBuiltin(false);
+                        }}
+                        className="p-1 rounded hover:bg-zinc-800 text-zinc-400 hover:text-white"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-1">
+                      <UploadCloud className="w-7 h-7 text-zinc-400 mx-auto" />
+                      <p className="text-xs font-semibold text-white">
+                        Click to browse or drop repository ZIP archive
+                      </p>
+                      <p className="text-[10px] text-zinc-500 font-mono">
+                        Supports Java, Spring Boot, Hibernate, Oracle SQL schemas (.zip up to 50MB)
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
+
+              {!selectedFile && !useBuiltin && (
+                <div className="text-center pt-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setUseBuiltin(true);
+                      setSelectedFile(null);
+                      setAppName("AcmeLIMS (Legacy Monolith)");
+                      setTargetCloud("AWS");
+                    }}
+                    className="w-full px-3 py-2 rounded bg-zinc-900 hover:bg-zinc-850 hover:bg-zinc-800 border border-zinc-700 text-xs text-zinc-200 font-medium flex items-center justify-center gap-2 transition-colors"
+                  >
+                    <Database className="w-3.5 h-3.5 text-zinc-400" />
+                    <span>Use Built-in AcmeLIMS Monolith (Demo)</span>
+                  </button>
+                </div>
+              )}
+
+              {uploadError && (
+                <div className="p-2.5 rounded bg-red-950/50 border border-red-800 text-xs text-red-300 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                  <span>{uploadError}</span>
+                </div>
+              )}
             </div>
+
             <div className="flex justify-end gap-2 pt-2">
               <button
                 type="button"
-                onClick={() => setAssessmentModalOpen(false)}
-                className="px-4 py-2 min-h-[38px] rounded bg-zinc-900 border border-zinc-800 text-xs text-zinc-300 hover:bg-zinc-800 focus-visible:ring-2 focus-visible:ring-white"
+                disabled={uploading}
+                onClick={() => {
+                  setAssessmentModalOpen(false);
+                  setSelectedFile(null);
+                  setUseBuiltin(false);
+                  setUploadError("");
+                }}
+                className="px-4 py-2 min-h-[38px] rounded bg-zinc-900 border border-zinc-800 text-xs text-zinc-300 hover:bg-zinc-800 focus-visible:ring-2 focus-visible:ring-white disabled:opacity-50"
               >
                 Cancel
               </button>
-              <Link
-                href="/projects/acmelims-demo/overview"
-                className="px-4 py-2 min-h-[38px] rounded bg-white text-xs text-black font-semibold hover:bg-zinc-200 focus-visible:ring-2 focus-visible:ring-white flex items-center justify-center"
+              <button
+                type="button"
+                disabled={uploading}
+                onClick={handleStartAssessment}
+                className="px-4 py-2 min-h-[38px] rounded bg-white text-xs text-black font-semibold hover:bg-zinc-200 focus-visible:ring-2 focus-visible:ring-white flex items-center justify-center gap-2 disabled:opacity-50"
               >
-                Start Assessment
-              </Link>
+                {uploading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>{uploadStatus || "Processing..."}</span>
+                  </>
+                ) : (
+                  <span>Start Assessment</span>
+                )}
+              </button>
             </div>
           </div>
         </div>

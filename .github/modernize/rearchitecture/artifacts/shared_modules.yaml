@@ -1,0 +1,77 @@
+modules:
+  - name: db-session
+    kind: config
+    source_loc: "backend/app/db/session.py:1"
+    used_by_units: [auth-api, projects-api, jobs-api, audit-api, twin-api, council-api, roadmap-api, evidence-api]
+    fields:
+      - name: get_db
+        type: "dependency provider"
+      - name: SessionLocal
+        type: "sqlalchemy.orm.sessionmaker"
+    god_class: false
+    split_candidate: false
+    migration_strategy: wrap
+    notes: "Central SQLAlchemy engine/session boundary."
+  - name: auth-service
+    kind: utility
+    source_loc: "backend/app/core/auth.py:1"
+    used_by_units: [audit-api, council-api, evidence-api]
+    fields:
+      - name: get_current_user
+        type: "FastAPI dependency"
+      - name: require_roles
+        type: "role dependency factory"
+    god_class: false
+    split_candidate: false
+    migration_strategy: wrap
+    notes: "JWT and role enforcement boundary."
+  - name: audit-service
+    kind: utility
+    source_loc: "backend/app/core/audit.py:1"
+    used_by_units: [projects-api, gxp-api, approvals-api]
+    fields:
+      - name: record_audit_event
+        type: "SQLAlchemy audit writer"
+      - name: verify_audit_chain
+        type: "audit verifier"
+    god_class: false
+    split_candidate: false
+    migration_strategy: wrap
+    notes: "Append-only SHA-256 chained audit behavior."
+  - name: graph-store
+    kind: store
+    source_loc: "backend/app/db/graph_store.py:1"
+    used_by_units: [twin-api, gxp-api, readiness-api, decomposition-api]
+    fields:
+      - name: get_graph_store
+        type: "graph store factory"
+      - name: get_all_nodes
+        type: "node collection reader"
+      - name: get_all_edges
+        type: "edge collection reader"
+    god_class: false
+    split_candidate: false
+    migration_strategy: wrap
+    notes: "Supports local NetworkX and optional Neo4j-backed graph behavior."
+  - name: settings
+    kind: config
+    source_loc: "backend/app/config.py:5"
+    used_by_units: [health-api, decomposition-api]
+    fields:
+      - name: ENVIRONMENT
+        type: "str"
+      - name: STANDALONE_LOCAL_MODE
+        type: "bool"
+      - name: OFFLINE_DEMO_MODE
+        type: "bool"
+      - name: USE_NEO4J
+        type: "bool"
+      - name: DECOMP_GAMMA
+        type: "float"
+      - name: weights_list
+        type: "List[float]"
+    god_class: false
+    split_candidate: false
+    migration_strategy: copy
+    notes: "Environment-backed runtime settings object."
+

@@ -1,0 +1,13 @@
+unit: gxp-api
+bindings:
+  - type: route-declaration
+    name: "GET /projects/{id}/gxp"
+    source_loc: "backend/app/api/routes_gxp.py:21"
+    target: "get_gxp_assessment"
+    must_appear_in_target: true
+  - type: route-declaration
+    name: "PATCH /projects/{id}/gxp/{node_id}"
+    source_loc: "backend/app/api/routes_gxp.py:28"
+    target: "override_gxp_tier"
+    must_appear_in_target: true
+runtime_config: []

@@ -1,0 +1,23 @@
+unit: decomposition-api
+side_effects:
+  - source_loc: "backend/app/api/routes_decomp.py:37-43"
+    effect: "may build the twin graph and persist project status before decomposition"
+    must_preserve: true
+branches:
+  - source_loc: "backend/app/api/routes_decomp.py:43"
+    condition: "twin graph has no Class nodes after optional build"
+    behavior: "returns 404 with analyze-first guidance"
+    must_preserve: true
+error_paths:
+  - source_loc: "backend/app/api/routes_decomp.py:43"
+    trigger: "empty twin graph"
+    outcome: "decomposition unavailable"
+    contract: "HTTP 404"
+    must_preserve: true
+concurrency:
+  model: sync
+  tx_boundary:
+    source_loc: "backend/app/api/routes_decomp.py:33"
+    scope: "graph read and optional project status update"
+    isolation: "database default"
+    must_preserve: true

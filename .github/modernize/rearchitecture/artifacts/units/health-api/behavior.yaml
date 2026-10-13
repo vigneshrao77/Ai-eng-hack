@@ -1,0 +1,27 @@
+unit: health-api
+side_effects:
+  - source_loc: "backend/app/api/routes_health.py:15"
+    effect: "executes SELECT 1 against the configured database"
+    must_preserve: true
+branches:
+  - source_loc: "backend/app/api/routes_health.py:19"
+    condition: "database probe succeeds"
+    behavior: "returns status healthy and database connected"
+    must_preserve: true
+  - source_loc: "backend/app/api/routes_health.py:19"
+    condition: "database probe fails"
+    behavior: "returns degraded status with unhealthy database detail"
+    must_preserve: true
+error_paths:
+  - source_loc: "backend/app/api/routes_health.py:33"
+    trigger: "readiness database probe raises"
+    outcome: "returns {ready:false}"
+    contract: "HTTP 200 readiness JSON"
+    must_preserve: true
+concurrency:
+  model: sync
+  tx_boundary:
+    source_loc: "backend/app/api/routes_health.py:14"
+    scope: "single database probe"
+    isolation: "database default"
+    must_preserve: true

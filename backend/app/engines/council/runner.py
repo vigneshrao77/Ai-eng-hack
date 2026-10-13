@@ -33,7 +33,7 @@ def run_council_for_clusters(
     db: Session,
     cluster_ids: Optional[List[str]] = None,
     actor: str = "ai_council_moderator",
-    force_offline: bool = True,
+    force_offline: bool = False,
 ) -> List[CouncilDebate]:
     """
     Executes the multi-agent AI Architecture Council workflow for a project's clusters.
@@ -107,7 +107,8 @@ def run_council_for_clusters(
         rebuttals = moderator.conduct_rebuttal(opinions)
 
         # 3. Moderator Synthesis
-        offline_mode = force_offline or not settings.ANTHROPIC_API_KEY
+        has_llm = bool(settings.GEMINI_API_KEY or settings.LLM_PROVIDER in ("ollama", "local") or settings.ANTHROPIC_API_KEY)
+        offline_mode = force_offline or not has_llm
         decision = moderator.synthesize(
             cluster_info=cluster,
             opinions=opinions,
