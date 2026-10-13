@@ -24,5 +24,5 @@ ModernRx is a web platform with **7 engines** in a pipeline:
  [7] Evidence Pack Generator  (CSA assurance plan, characterization tests, PDF)
         │
         ▼
- Dashboard + Chat with the Twin + Human approval gates (audit trail)
+ Dashboard + Chat with the Twin + Human approval gates (audit trail record)
 ```
